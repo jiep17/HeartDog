@@ -1,13 +1,16 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:heartdog/src/pages/control_pages.dart';
+import 'package:heartdog/src/pages/home_page.dart';
 import 'package:heartdog/src/pages/login_page.dart';
 
 class RouteGenerator{
   static Route<dynamic> generateRoute(RouteSettings settings){
     switch (settings.name){
       case '/':return MaterialPageRoute(builder: (context)=> const LoginPage() ) ;
-     
+      //case '/home': return MaterialPageRoute(builder: (context) => const HomePage());
+      case '/controlpages': return MaterialPageRoute(builder: (context) => const ControlPages());
       default: return _errorRoute();
 
     }
