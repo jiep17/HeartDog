@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:heartdog/src/util/app_colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,7 +15,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Colors.white,
+        color: AppColors.backgroundSecondColor,
       ),
     );
   }

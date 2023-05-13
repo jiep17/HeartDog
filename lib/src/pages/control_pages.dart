@@ -24,6 +24,14 @@ class _ControlPagesState extends State<ControlPages> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Image.asset(
+          'assets/images/barbeat_logo.png', // Ruta de la imagen del logo
+          fit: BoxFit.contain, // Ajustar la imagen dentro del AppBar
+          height: AppBar().preferredSize.height,
+        ),
+      ),
       body: _pages[_indexPage],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _indexPage,
@@ -32,14 +40,16 @@ class _ControlPagesState extends State<ControlPages> {
             _indexPage = index;
           });
         },
-        items: [
-          const BottomNavigationBarItem(
+        items: const [
+          BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Inicio',
+            tooltip: "Mira estadisticas"
           ),
-          const BottomNavigationBarItem(
+          BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Inicio',
+            label: 'Perfil',
+            tooltip: "Revisa tu datos"
           ),
         ]
       ),
