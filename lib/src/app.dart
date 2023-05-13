@@ -14,15 +14,16 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        //colorScheme: ColorScheme.fromSwatch()
       ),
-      localizationsDelegates: const [
+      /*localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate
       ],
       supportedLocales: const [
         Locale('en','US'),
         Locale('es','ES')
-      ],
+      ],*/
       initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
       

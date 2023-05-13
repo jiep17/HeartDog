@@ -7,8 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:heartdog/main.dart';
 import 'package:heartdog/src/app.dart';
 
 void main() {
