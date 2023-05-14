@@ -51,7 +51,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).pushNamed('/edit_info_page');
+                        },
                         child: Icon(
                           Icons.edit,
                           size: 24,
@@ -87,7 +89,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.of(context).pushNamed('/edit_mydog_page');
+                            },
                             child: Icon(
                               Icons.edit,
                               size: 24,

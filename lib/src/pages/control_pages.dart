@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heartdog/src/pages/home_page.dart';
-import 'package:heartdog/src/pages/profile_page.dart';
+import 'package:heartdog/src/pages/profile/profile_page.dart';
 
 class ControlPages extends StatefulWidget {
   const ControlPages({super.key});
@@ -26,6 +26,7 @@ class _ControlPagesState extends State<ControlPages> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,//ocultamos el iconButton retroceder del appbar
         title: Image.asset(
           'assets/images/barbeat_logo.png', // Ruta de la imagen del logo
           fit: BoxFit.contain, // Ajustar la imagen dentro del AppBar
