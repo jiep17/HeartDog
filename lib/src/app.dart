@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:heartdog/src/route_generator.dart';
 
 class MyApp extends StatelessWidget {
@@ -8,25 +9,24 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       title: 'BarkBeat App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        //colorScheme: ColorScheme.fromSwatch()
-      ),
-      /*localizationsDelegates: const [
+      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Europa'
+          //colorScheme: ColorScheme.fromSwatch()
+          ),
+      localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: const [
-        Locale('en','US'),
-        Locale('es','ES')
-      ],*/
+         Locale('es', 'ES'),
+         Locale('en', 'US'),
+        // Agrega otros idiomas que desees soportar
+      ],
       initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
-      
     );
   }
 }

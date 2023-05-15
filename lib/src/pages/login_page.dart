@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:heartdog/src/util/app_colors.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-        color: const Color.fromRGBO(191, 183, 143, 1),
+        color: AppColors.backgroundColor,
         child: Column(children: [
           Expanded(
               flex: _isTapped ? 4 : 5,
@@ -60,30 +61,28 @@ class _LoginPageState extends State<LoginPage> {
           Expanded(
             flex: 5,
             child: AnimatedContainer(
-              duration: Duration(milliseconds: 500),
+              duration: const Duration(milliseconds: 500),
               curve: Curves.easeInOut,
               width: MediaQuery.of(context).size.width * 2,
               child: Stack(
                 children: [
                   AnimatedPositioned(
-                    duration: Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 500),
                     curve: Curves.easeInOut,
                     left: _isTapped ? 0 : MediaQuery.of(context).size.width,
-                    child: Container(
+                    child: SizedBox(
                         width: MediaQuery.of(context).size.width,
                         height: MediaQuery.of(context).size.height / 10 * 5,
-                        color: Colors.blue,
                         child: _loginInputsWidget()),
                   ),
                   AnimatedPositioned(
-                    duration: Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 500),
                     curve: Curves.easeInOut,
                     left: _isTapped ? -MediaQuery.of(context).size.width : 0,
-                    child: Container(
+                    child: SizedBox(
                         height: MediaQuery.of(context).size.height / 10 * 5,
                         width: MediaQuery.of(context).size.width,
                         //width: MediaQuery.of(context).size.width,
-                        color: Colors.green,
                         child: _presentationWidget()),
                   ),
                 ],
@@ -116,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
           Expanded(
               flex: 4,
               child: Container(
-                color: const Color.fromRGBO(191, 183, 143, 1),
+                color: AppColors.backgroundColor,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -131,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                               fontFamily: 'Europa',
                               fontWeight: FontWeight.w700,
                               height: 1.3,
-                              color: Colors.black,
+                              color: AppColors.textColor,
                               decoration: TextDecoration.none),
                         ),
                         SizedBox(height: 28),
@@ -148,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                           "Bajo el monitoreo de Wearables\ny con Machine Learning 🤖🧠",
                           style: TextStyle(
                               fontFamily: 'Europa',
-                              color: Colors.black,
+                              color: AppColors.textColor,
                               fontWeight: FontWeight.w500,
                               fontSize: 22,
                               decoration: TextDecoration.none),
@@ -191,7 +190,7 @@ class _LoginPageState extends State<LoginPage> {
                       Expanded(
                         flex: 2,
                         child: Container(
-                            color: const Color.fromRGBO(2, 71, 85, 1),
+                            color: const Color.fromRGBO(2, 71, 85, 1), //primaryColor pero mas oscuro
                             child: const Center(
                                 //color: Colors.red,
                                 child: Icon(Icons.keyboard_arrow_right,
@@ -220,10 +219,10 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _loginInputsWidget() {
     return Container(
-      color: Color.fromRGBO(191, 183, 143, 1),
+      color: AppColors.backgroundColor,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
-          margin: EdgeInsets.only(left: 10),
+          margin: const EdgeInsets.only(left: 10),
           child: TextButton(
               style: TextButton.styleFrom(
                 minimumSize: const Size(15, 0),
@@ -233,7 +232,7 @@ class _LoginPageState extends State<LoginPage> {
                       _isTapped = !_isTapped;
                     })
                   },
-              child: Icon(
+              child: const Icon(
                 Icons.keyboard_arrow_left,
                 color: Colors.white,
               )),
@@ -251,7 +250,7 @@ class _LoginPageState extends State<LoginPage> {
                     const Text(
                       'Correo electrónico',
                       style: TextStyle(
-                          color: Color.fromRGBO(2, 94, 115, 1),
+                          color: AppColors.primaryColor,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Europa',
                           fontSize: 18),
@@ -259,9 +258,9 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 15),
                     TextFormField(
                       keyboardType: TextInputType.emailAddress,
-                      cursorColor: Color.fromRGBO(2, 94, 115, 1),
+                      cursorColor: AppColors.primaryColor,
                       style: const TextStyle(
-                        color: Color.fromRGBO(1, 31, 38, 1),
+                        color: AppColors.textColor,
                       ),
                       onTapOutside: (event) => {
                         //event.
@@ -274,7 +273,7 @@ class _LoginPageState extends State<LoginPage> {
                         //fillColor: Color.fromARGB(0, 0, 0, 0),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                              color: Color.fromRGBO(2, 94, 115, 1), width: 2.0),
+                              color: AppColors.primaryColor, width: 2.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide:
@@ -306,7 +305,7 @@ class _LoginPageState extends State<LoginPage> {
                     const Text(
                       'Contraseña',
                       style: TextStyle(
-                          color: Color.fromRGBO(2, 94, 115, 1),
+                          color: AppColors.primaryColor,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Europa',
                           fontSize: 18),
@@ -314,9 +313,9 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 15),
                     TextFormField(
                       keyboardType: TextInputType.text,
-                      cursorColor: Color.fromRGBO(2, 94, 115, 1),
+                      cursorColor: AppColors.primaryColor,
                       style: const TextStyle(
-                        color: Color.fromRGBO(1, 31, 38, 1),
+                        color: AppColors.textColor,
                       ),
                       onTapOutside: (event) => {
                         //event.
@@ -341,7 +340,7 @@ class _LoginPageState extends State<LoginPage> {
                         //fillColor: Color.fromARGB(0, 0, 0, 0),
                         enabledBorder: const OutlineInputBorder(
                           borderSide: BorderSide(
-                              color: Color.fromRGBO(2, 94, 115, 1), width: 2.0),
+                              color: AppColors.primaryColor, width: 2.0),
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderSide:
@@ -382,7 +381,9 @@ class _LoginPageState extends State<LoginPage> {
                           fontWeight: FontWeight.w500,
                           fontSize: 18,
                           letterSpacing: 2.0)),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).pushNamed('/controlpages');
+                  },
                   child: const Text('Iniciar sesión'),
                 ),
                 /*const SizedBox(
@@ -402,7 +403,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: const [
                     Text(
                     '¿No tienes una cuenta? ',
                     style: TextStyle(
@@ -414,7 +415,7 @@ class _LoginPageState extends State<LoginPage> {
                     'Registrate',
                     style: TextStyle(
                         fontFamily: 'Europa',
-                        color: Color.fromRGBO(2, 94, 115, 1),
+                        color: AppColors.primaryColor,
                         fontSize: 16,
                         fontWeight: FontWeight.w500),
                   ),
