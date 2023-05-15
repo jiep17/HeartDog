@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heartdog/src/pages/home_page.dart';
+import 'package:heartdog/src/pages/monitoring/monitoring_pages.dart';
 import 'package:heartdog/src/pages/profile/profile_page.dart';
 
 class ControlPages extends StatefulWidget {
@@ -17,7 +18,8 @@ class _ControlPagesState extends State<ControlPages> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const ProfilePage()
+    const ProfilePage(),
+    const MonitoringPage(),
   ];
 
 
@@ -51,6 +53,11 @@ class _ControlPagesState extends State<ControlPages> {
             icon: Icon(Icons.person),
             label: 'Perfil',
             tooltip: "Revisa tu datos"
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.visibility),
+            label: 'Monitoreo',
+            tooltip: "Monitoreo"
           ),
         ]
       ),
