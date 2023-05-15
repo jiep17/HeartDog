@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heartdog/src/pages/home_page.dart';
 import 'package:heartdog/src/pages/monitoring/heart_rate.dart';
 import 'package:heartdog/src/pages/monitoring/respiratory_rate.dart';
+import 'package:heartdog/src/util/app_colors.dart';
 
 class MonitoringPage extends StatefulWidget {
   const MonitoringPage({Key? key}) : super(key: key);
@@ -14,8 +15,8 @@ class _MonitoringPageState extends State<MonitoringPage> {
   final double temperatura = 37.5;
 
   final List<double> valoresFisiologicos = [
-    70.0, // Frecuencia cardiaca
-    20.0, // Frecuencia respiratoria (en respiraciones por minuto)
+    70.0, // Frecuencia cardiaca (latidos por minuto, ppm)
+    20.0, // Frecuencia respiratoria (en respiraciones por minuto, rpm)
     60.0, // Actividad física (en minutos)
     8.0, // Sueño (en horas)
     3.5, // Nivel de estrés (en una escala de 1 a 5)
@@ -35,13 +36,6 @@ class _MonitoringPageState extends State<MonitoringPage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  const Text(
-                    'Monitoreo',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(8.0),
@@ -112,7 +106,7 @@ class _MonitoringPageState extends State<MonitoringPage> {
                             children: [
                               const Icon(
                                 Icons.favorite,
-                                color: Colors.red,
+                                color: AppColors.primaryColor,
                               ),
                               const Text(
                                 'Frecuencia cardíaca',
@@ -123,7 +117,7 @@ class _MonitoringPageState extends State<MonitoringPage> {
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                valoresFisiologicos[0].toString(),
+                                '${valoresFisiologicos[0]} ppm',
                                 style: const TextStyle(fontSize: 14),
                               ),
                             ],
@@ -141,7 +135,7 @@ class _MonitoringPageState extends State<MonitoringPage> {
                         MaterialPageRoute(
                           builder: (context) => const RespiratoryRatePage(
                           title: 'Frecuencia respiratoria',
-                          frequencyData: [70, 72, 74, 73, 75, 76],
+                          frequencyData: [20, 22, 18, 25, 24, 21],
                           ),
                         ),
                       );
@@ -154,7 +148,7 @@ class _MonitoringPageState extends State<MonitoringPage> {
                             children: [
                               const Icon(
                                 Icons.air_outlined,
-                                color: Colors.blue,
+                                color: AppColors.primaryColor,
                               ),
                               const Text(
                                 'Frecuencia respiratoria',
@@ -165,7 +159,7 @@ class _MonitoringPageState extends State<MonitoringPage> {
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                valoresFisiologicos[1].toString(),
+                                '${valoresFisiologicos[1]} rpm',
                                 style: const TextStyle(fontSize: 14),
                               ),
                             ],
@@ -236,7 +230,7 @@ class _MonitoringPageState extends State<MonitoringPage> {
                             const Icon(
                               Icons.add_reaction_outlined,
                               // Icons.stress_outlined,
-                              color: Colors.deepPurple,
+                              color: AppColors.primaryColor,
                             ),
                             const Text(
                               'Nivel de estrés',
@@ -258,7 +252,7 @@ class _MonitoringPageState extends State<MonitoringPage> {
                           children: [
                             const Icon(
                               Icons.local_drink_outlined,
-                              color: Colors.teal,
+                              color: AppColors.primaryColor,
                             ),
                             const Text(
                               'Nivel de hidratación',
