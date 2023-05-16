@@ -70,7 +70,7 @@ class _EditPersonalInfoPageState extends State<EditPersonalInfoPage> {
                                     child: ElevatedButton(
                                       onPressed: () {},
                                       style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.blueColor),
+                                          backgroundColor: AppColors.primaryColor),
                                       child: Row(
                                           //alignment: WrapAlignment.spaceBetween,
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -467,13 +467,13 @@ class _EditPersonalInfoPageState extends State<EditPersonalInfoPage> {
                                   ),
                                   SizedBox(
                                       width: double.infinity,
-                                      height: 45,
+                                      //height: 40,
                                       child: ElevatedButton(
                                         onPressed: () {},
                                         style: ElevatedButton.styleFrom(
                                             backgroundColor:
-                                                AppColors.primaryColor),
-                                        child: const Text("Guardar cambios"),
+                                                AppColors.secondaryColor),
+                                        child: const Text("Guardar cambios",style: TextStyle(color: AppColors.textColor),),
                                       ))
                                 ],
                               ))),

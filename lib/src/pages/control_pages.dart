@@ -18,8 +18,8 @@ class _ControlPagesState extends State<ControlPages> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const ProfilePage(),
     const MonitoringPage(),
+    const ProfilePage(),
   ];
 
 
@@ -50,15 +50,16 @@ class _ControlPagesState extends State<ControlPages> {
             tooltip: "Mira estadisticas"
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-            tooltip: "Revisa tu datos"
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.visibility),
             label: 'Monitoreo',
             tooltip: "Monitoreo"
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+            tooltip: "Revisa tu datos"
+          ),
+          
         ]
       ),
     );
