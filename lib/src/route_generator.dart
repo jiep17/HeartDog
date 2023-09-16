@@ -6,6 +6,9 @@ import 'package:heartdog/src/pages/home_page.dart';
 import 'package:heartdog/src/pages/login_page.dart';
 import 'package:heartdog/src/pages/profile/edit_info_page.dart';
 import 'package:heartdog/src/pages/profile/edit_mydog_page.dart';
+import 'package:heartdog/src/pages/profile/profile_page.dart';
+import 'package:heartdog/src/pages/profile/register_mydog_page.dart';
+import 'package:heartdog/src/pages/register_user_page.dart';
 
 class RouteGenerator{
   static Route<dynamic> generateRoute(RouteSettings settings){
@@ -14,9 +17,14 @@ class RouteGenerator{
       //case '/home': return MaterialPageRoute(builder: (context) => const HomePage());
       case '/controlpages': return MaterialPageRoute(builder: (context) => const ControlPages());
       case '/edit_info_page': return MaterialPageRoute(builder: (context) => const EditPersonalInfoPage());
-      case '/edit_mydog_page': return MaterialPageRoute(builder: (context) => const EditMyDogPage());
+      case '/create_mydog_page': return MaterialPageRoute(builder: (context) => const RegisterMyDogPage());
+      case '/edit_mydog_page':
+        final dogId = settings.arguments as String;
+        return MaterialPageRoute(
+          builder: (context) => EditMyDogPage(dogId: dogId),
+        );
+      case '/register_user': return MaterialPageRoute(builder: (context) => const RegisterUserPage());
       default: return _errorRoute();
-
     }
   }
 

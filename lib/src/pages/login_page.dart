@@ -2,6 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:heartdog/src/models/user.dart';
+import 'package:heartdog/src/services/owner_services.dart';
+import 'package:heartdog/src/services/user_services.dart';
 import 'package:heartdog/src/util/app_colors.dart';
 
 class LoginPage extends StatefulWidget {
@@ -12,8 +15,48 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   bool _isTapped = false;
   bool _obscureText = false;
+
+  String? _validateEmail(String? value) {
+    final RegExp emailExp =
+        RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    if (!emailExp.hasMatch(value!)) {
+      return 'El correo electrónico no es válido';
+    }
+    return null;
+  }
+
+  void _login() async {
+    // Llamar al servicio de inicio de sesión y verificar si es exitoso.
+
+    if (_formKey.currentState!.validate()) {
+      try {
+        final userService = UserService();
+
+        final String email = _emailController.text;
+        final String password = _passwordController.text;
+
+        final User user = User(
+          email: email,
+          password: password,
+        );
+
+        final response = await userService.loginUser(user);
+        if (response == 1) {
+          Navigator.of(context).pushNamed('/controlpages');
+        } else {
+          print("No se logeo");
+        }
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +233,8 @@ class _LoginPageState extends State<LoginPage> {
                       Expanded(
                         flex: 2,
                         child: Container(
-                            color: const Color.fromRGBO(2, 71, 85, 1), //primaryColor pero mas oscuro
+                            color: const Color.fromRGBO(
+                                2, 71, 85, 1), //primaryColor pero mas oscuro
                             child: const Center(
                                 //color: Colors.red,
                                 child: Icon(Icons.keyboard_arrow_right,
@@ -238,192 +282,179 @@ class _LoginPageState extends State<LoginPage> {
               )),
         ),
         Material(
-          color: Colors.transparent,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
+            color: Colors.transparent,
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 25, vertical: 0),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Correo electrónico',
-                      style: TextStyle(
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Europa',
-                          fontSize: 18),
-                    ),
-                    const SizedBox(height: 15),
-                    TextFormField(
-                      keyboardType: TextInputType.emailAddress,
-                      cursorColor: AppColors.primaryColor,
-                      style: const TextStyle(
-                        color: AppColors.textColor,
-                      ),
-                      onTapOutside: (event) => {
-                        //event.
-                      },
-
-                      decoration: const InputDecoration(
-                        //filled: true,
-
-                        //prefixText: '@sda',
-                        //fillColor: Color.fromARGB(0, 0, 0, 0),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: AppColors.primaryColor, width: 2.0),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Correo electrónico',
+                          style: TextStyle(
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Europa',
+                              fontSize: 18),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.blueGrey, width: 2.0),
-                        ),
-                        hintText: 'email@example.com',
-                        hintStyle: TextStyle(
-                          color: Colors.grey,
-                        ),
-                        //counterText: "${_email.length.toString()}/40",
-                        counterStyle: const TextStyle(color: Colors.white),
-                        focusColor: Colors.white,
-                        hoverColor: Colors.white,
-                      ),
-                      // The validator receives the text that the user has entered.
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter some text';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Contraseña',
-                      style: TextStyle(
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Europa',
-                          fontSize: 18),
-                    ),
-                    const SizedBox(height: 15),
-                    TextFormField(
-                      keyboardType: TextInputType.text,
-                      cursorColor: AppColors.primaryColor,
-                      style: const TextStyle(
-                        color: AppColors.textColor,
-                      ),
-                      onTapOutside: (event) => {
-                        //event.
-                      },
-                      obscureText: !_obscureText,
-
-                      decoration: InputDecoration(
-                        //filled: true,
-                        suffixIcon: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _obscureText = !_obscureText;
-                            });
+                        const SizedBox(height: 15),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          cursorColor: AppColors.primaryColor,
+                          style: const TextStyle(
+                            color: AppColors.textColor,
+                          ),
+                          onTapOutside: (event) => {
+                            //event.
                           },
-                          child: Icon(
-                              _obscureText
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.blueGrey),
+                          decoration: const InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: AppColors.primaryColor, width: 2.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Colors.blueGrey, width: 2.0),
+                            ),
+                            hintText: 'email@example.com',
+                            hintStyle: TextStyle(
+                              color: Colors.grey,
+                            ),
+                            //counterText: "${_email.length.toString()}/40",
+                            counterStyle: const TextStyle(color: Colors.white),
+                            focusColor: Colors.white,
+                            hoverColor: Colors.white,
+                          ),
+                          // The validator receives the text that the user has entered.
+                          validator: _validateEmail,
                         ),
-                        //prefixText: '@sda',
-                        //fillColor: Color.fromARGB(0, 0, 0, 0),
-                        enabledBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: AppColors.primaryColor, width: 2.0),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.blueGrey, width: 2.0),
-                        ),
-                        hintText: '*****',
-                        hintStyle: const TextStyle(
-                          color: Colors.grey,
-                        ),
-                        //counterText: "${_email.length.toString()}/40",
-                        counterStyle: const TextStyle(color: Colors.white),
-                        focusColor: Colors.white,
-                        hoverColor: Colors.white,
-                      ),
-                      // The validator receives the text that the user has entered.
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter some text';
-                        }
-                        return null;
-                      },
+                      ],
                     ),
+                    SizedBox(height: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Contraseña',
+                          style: TextStyle(
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Europa',
+                              fontSize: 18),
+                        ),
+                        const SizedBox(height: 15),
+                        TextFormField(
+                          controller: _passwordController,
+                          keyboardType: TextInputType.text,
+                          cursorColor: AppColors.primaryColor,
+                          style: const TextStyle(
+                            color: AppColors.textColor,
+                          ),
+                          onTapOutside: (event) => {
+                            //event.
+                          },
+                          obscureText: !_obscureText,
+
+                          decoration: InputDecoration(
+                            //filled: true,
+                            suffixIcon: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _obscureText = !_obscureText;
+                                });
+                              },
+                              child: Icon(
+                                  _obscureText
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.blueGrey),
+                            ),
+                            //prefixText: '@sda',
+                            //fillColor: Color.fromARGB(0, 0, 0, 0),
+                            enabledBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: AppColors.primaryColor, width: 2.0),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Colors.blueGrey, width: 2.0),
+                            ),
+                            hintText: '*****',
+                            hintStyle: const TextStyle(
+                              color: Colors.grey,
+                            ),
+                            //counterText: "${_email.length.toString()}/40",
+                            counterStyle: const TextStyle(color: Colors.white),
+                            focusColor: Colors.white,
+                            hoverColor: Colors.white,
+                          ),
+                          // The validator receives the text that the user has entered.
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter some text';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 35,
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                          minimumSize: const Size.fromHeight(50),
+                          backgroundColor: const Color.fromRGBO(2, 71, 85, 1),
+                          textStyle: const TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Riftsoft',
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18,
+                              letterSpacing: 2.0)),
+                      onPressed: _login,
+                      child: const Text('Iniciar sesión'),
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          '¿No tienes una cuenta? ',
+                          style: TextStyle(
+                              fontFamily: 'Europa',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/register_user');
+                          },
+                          child: const Text(
+                            'Registrate',
+                            style: TextStyle(
+                                fontFamily: 'Europa',
+                                color: AppColors.primaryColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    )
                   ],
                 ),
-                const SizedBox(
-                  height: 35,
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      ),
-                      minimumSize: const Size.fromHeight(50),
-                      backgroundColor: const Color.fromRGBO(2, 71, 85, 1),
-                      textStyle: const TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Riftsoft',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 18,
-                          letterSpacing: 2.0)),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed('/controlpages');
-                  },
-                  child: const Text('Iniciar sesión'),
-                ),
-                /*const SizedBox(
-                  height: 20,
-                ),
-                Center(
-                  child: Text(
-                    '¿Olvidaste tu contraseña?',
-                    style: TextStyle(
-                        fontFamily: 'Europa',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),*/
-                const SizedBox(
-                  height: 30,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Text(
-                    '¿No tienes una cuenta? ',
-                    style: TextStyle(
-                        fontFamily: 'Europa',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    'Registrate',
-                    style: TextStyle(
-                        fontFamily: 'Europa',
-                        color: AppColors.primaryColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ],)
-              ],
-            ),
-          ),
-        ),
+              ),
+            )),
       ]),
     );
   }

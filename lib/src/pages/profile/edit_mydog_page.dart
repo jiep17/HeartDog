@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import '../../util/app_colors.dart';
 
 class EditMyDogPage extends StatefulWidget {
-  const EditMyDogPage({super.key});
+  final String dogId;
+
+  const EditMyDogPage({required this.dogId});
 
   @override
   State<EditMyDogPage> createState() => _EditMyDogPageState();
 }
 
 class _EditMyDogPageState extends State<EditMyDogPage> {
+
+
   int _selectedAge = 1;
   String _selectedRace = 'Chihuahua';
   List<String> _selectedDiseases = [];
@@ -55,8 +59,8 @@ class _EditMyDogPageState extends State<EditMyDogPage> {
                 child: ListView(
                     //crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Editar información de mi mascota',
+                      Text(
+                        'Editar información de mi mascota - ${widget.dogId}',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),

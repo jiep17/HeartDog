@@ -57,7 +57,7 @@ class _ControlPagesState extends State<ControlPages> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Perfil',
-            tooltip: "Revisa tu datos"
+            tooltip: "Revisa tus datos"
           ),
           
         ]
