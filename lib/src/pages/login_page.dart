@@ -6,6 +6,7 @@ import 'package:heartdog/src/models/user.dart';
 import 'package:heartdog/src/services/owner_services.dart';
 import 'package:heartdog/src/services/user_services.dart';
 import 'package:heartdog/src/util/app_colors.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -50,10 +51,24 @@ class _LoginPageState extends State<LoginPage> {
         if (response == 1) {
           Navigator.of(context).pushNamed('/controlpages');
         } else {
-          print("No se logeo");
+          Fluttertoast.showToast(
+              msg: "Usuario o contraseña incorrecta",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
         }
       } catch (e) {
-        print(e);
+        Fluttertoast.showToast(
+            msg: "Usuario o contraseña incorrecta",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0);
       }
     }
   }
