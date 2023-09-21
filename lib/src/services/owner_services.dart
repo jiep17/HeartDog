@@ -24,4 +24,19 @@ class OwnerService {
       return 2;
     }
   }
+
+    Future<Owner> getOwner(String id) async {
+    final response = await http.get(Uri.parse('$apiUrl/$id'));
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      final data = jsonResponse['data'];
+      return Owner.fromJson(data);
+    } else {
+      // Si la solicitud no fue exitosa, lanza una excepción o maneja el error según tu necesidad
+      throw Exception('Error al obtener el owner');
+    }
+  }
+
+
 }

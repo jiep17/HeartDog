@@ -20,7 +20,6 @@ class UserService {
     if (response.statusCode == 201) {
       final jsonResponse = jsonDecode(response.body);
       final data = jsonResponse['data'];
-      print(data);
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('userId', data['id']);
       prefs.setString('email', data['email']);

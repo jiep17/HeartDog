@@ -21,7 +21,7 @@ class Owner {
       name: json['name'] as String,
       lastname: json['lastname'] as String,
       email: json['email'] as String,
-      password: json['password'] as String,
+      password: json['password'] as String? ?? '',
       phone: json['phone'] as String,
     );
   }
