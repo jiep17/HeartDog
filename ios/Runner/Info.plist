@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>BarkBeat</string>
+	<string>Heartdog</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -47,15 +47,13 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>CFBundleIcons</key>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Se necesitan permisos Bluetooth para conectarse al dispositivo BarkBeat</string>
+	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>CFBundlePrimaryIcon</key>
-		<dict>
-			<key>CFBundleIconFiles</key>
-			<array>
-				<string>LaunchImage.png</string>
-			</array>
-		</dict>
+    	<key>NSAllowsArbitraryLoads</key>
+    	<true/>
 	</dict>
-</dict>
+</dict>	
+
 </plist>
