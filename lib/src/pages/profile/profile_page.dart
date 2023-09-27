@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:heartdog/src/models/owner.dart';
-import 'package:heartdog/src/pages/profile/edit_mydog_page.dart';
 import 'package:heartdog/src/services/dog_services.dart';
 import 'package:heartdog/src/services/owner_services.dart';
 import 'package:heartdog/src/util/app_colors.dart';
@@ -108,17 +107,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
 
               // Botón para agregar un nuevo perro
-              ElevatedButton(
+
+
+              /*ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pushNamed('/create_mydog_page');
                 },
                 child: Text('Agregar un nuevo perro'),
-              ),
+              ),*/
 
               const SizedBox(height: 20),
 
@@ -132,7 +133,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   } else if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Text(
+                    return const Text(
                         'No tienes ningun perro registrado.'); // Mensaje si no hay perros
                   } else {
                     // Si hay datos, muestra la lista de perros en tarjetas de mascota

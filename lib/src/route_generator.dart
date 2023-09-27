@@ -2,11 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:heartdog/src/pages/control_pages.dart';
-import 'package:heartdog/src/pages/home_page.dart';
 import 'package:heartdog/src/pages/login_page.dart';
 import 'package:heartdog/src/pages/profile/edit_info_page.dart';
 import 'package:heartdog/src/pages/profile/edit_mydog_page.dart';
-import 'package:heartdog/src/pages/profile/profile_page.dart';
 import 'package:heartdog/src/pages/profile/register_mydog_page.dart';
 import 'package:heartdog/src/pages/register_user_page.dart';
 

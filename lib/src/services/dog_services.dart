@@ -23,7 +23,8 @@ class DogService {
       return dogs;
     } else {
       // Si la solicitud no fue exitosa, lanza una excepción o maneja el error según tu necesidad
-      throw Exception('Error al obtener la lista de perros');
+      //throw Exception('Error al obtener la lista de perros');
+      return [];
     }
   }
 
