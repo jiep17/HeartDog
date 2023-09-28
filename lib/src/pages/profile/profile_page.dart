@@ -144,23 +144,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         for (final dog in dogs)
                           Column(
                             children: [
-                              ListTile(
-                                title: Text(""),
-                                leading: Radio<String>(
-                                  value: dog.id,
-                                  groupValue: _activeDogId,
-                                  onChanged: (String? newValue) async {
-                                    setState(() {
-                                      _activeDogId = newValue!;
-                                    });
-
-                                    // Guardar el ID del perro activo en las preferencias
-                                    final prefs =
-                                        await SharedPreferences.getInstance();
-                                    prefs.setString('dogId', _activeDogId);
-                                  },
-                                ),
-                              ),
                               Card(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10.0),
@@ -196,7 +179,32 @@ class _ProfilePageState extends State<ProfilePage> {
                                               size: 24,
                                               color: AppColors.primaryColor,
                                             ),
-                                          )
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              setState(() {
+                                                _activeDogId = dog.id;
+                                              });
+
+                                              // Guardar el ID del perro activo en las preferencias
+                                              final prefs = await SharedPreferences.getInstance();
+                                              prefs.setString('dogId', _activeDogId);
+                                            },
+                                            style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStateProperty.all<
+                                                      Color>(
+                                                dog.id == _activeDogId
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              dog.id == _activeDogId
+                                                  ? 'Activo'
+                                                  : 'Inactivo',
+                                            ),
+                                          ),
                                         ],
                                       ),
                                       const SizedBox(height: 5),
