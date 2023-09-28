@@ -129,16 +129,7 @@ class _MonitoringPageState extends State<MonitoringPage> {
                   const SizedBox(height: 10),
                   GestureDetector(
                     onTap: () {
-                      // Acción al hacer clic en "Frecuencia respiratoria"
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RespiratoryRatePage(
-                          title: 'Frecuencia respiratoria',
-                          frequencyData: [20, 22, 18, 25, 24, 21],
-                          ),
-                        ),
-                      );
+                       Navigator.of(context).pushNamed('/ecg_graph');
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,

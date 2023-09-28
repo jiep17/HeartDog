@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/dog.dart';
 
 class DogService {
-  final String apiUrl = 'http://34.204.154.158:443/api/v1/dogs'; // Reemplaza con tu URL
+  final String apiUrl = 'http://34.204.154.158:443/api/v1/dogs'; 
 
   Future<List<Dog>> getDogsByOwnerId(String ownerId) async {
     final response = await http.get(
@@ -30,7 +30,6 @@ class DogService {
 
 
   Future<Dog> registerADog(Dog dog) async {
-    
     final response = await http.post(
       Uri.parse(apiUrl),
       headers: <String, String>{
@@ -38,6 +37,7 @@ class DogService {
       },
       body: jsonEncode(dog.toJson()),
     );
+
     if (response.statusCode == 201) {
       final jsonResponse = jsonDecode(response.body);
       final data = jsonResponse['data'];

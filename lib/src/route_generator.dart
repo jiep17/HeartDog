@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:heartdog/src/pages/control_pages.dart';
 import 'package:heartdog/src/pages/login_page.dart';
+import 'package:heartdog/src/pages/monitoring/ecg_graph_pages.dart';
 import 'package:heartdog/src/pages/profile/edit_info_page.dart';
 import 'package:heartdog/src/pages/profile/edit_mydog_page.dart';
 import 'package:heartdog/src/pages/profile/register_mydog_page.dart';
@@ -22,6 +23,7 @@ class RouteGenerator{
           builder: (context) => EditMyDogPage(dogId: dogId),
         );
       case '/register_user': return MaterialPageRoute(builder: (context) => const RegisterUserPage());
+      case '/ecg_graph': return MaterialPageRoute(builder: (context) => ECGGraphPage());
       default: return _errorRoute();
     }
   }
