@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:heartdog/src/models/owner.dart';
 import 'package:heartdog/src/services/dog_services.dart';
 import 'package:heartdog/src/services/owner_services.dart';
 import 'package:heartdog/src/util/app_colors.dart';
+import 'package:heartdog/src/widgets/add_user_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/dog.dart';
+import '../../widgets/selected_user_tile.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -19,18 +22,26 @@ class _ProfilePageState extends State<ProfilePage> {
       DogService(); // Reemplaza con tu propio servicio de perros
   final OwnerService _ownerService = OwnerService();
   String _idOwner = "";
+  var prefs;
 
   Owner _owner =
       Owner(id: '', name: '', lastname: '', email: '', password: '', phone: '');
 
+  List<Dog> _myDogs = [];
+
+  Dog? selectedDog;
+
+  int indexSelectedDog = 0;
+
+  bool _isLoadingDogs = true;
   @override
   void initState() {
     super.initState();
-    _loadData(); // Cargar datos al iniciar la página
+    _loadData();
   }
 
   Future<String> getIdOwner() async {
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     return prefs.getString('userId')!;
   }
 
@@ -41,6 +52,7 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _idOwner = idOwner;
       });
+      await _loadDogs();
       setState(() {
         _owner = owner;
       });
@@ -48,6 +60,14 @@ class _ProfilePageState extends State<ProfilePage> {
       // Manejar error de obtención de razas
       print('Error');
     }
+  }
+
+  Future<void> _loadDogs() async {
+    _myDogs = await _dogService.getDogsByOwnerId(_idOwner);
+    setState(() {
+      selectedDog = _myDogs[0];
+      _isLoadingDogs = false;
+    });
   }
 
   @override
@@ -60,6 +80,32 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
             child: Column(children: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    backgroundColor: AppColors.blueColor,
+                    textStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        letterSpacing: 1.0)),
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/scan_devices');
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FaIcon(FontAwesomeIcons.boxArchive,size: 20,),
+                    SizedBox(width: 5,),
+                    FaIcon(FontAwesomeIcons.bluetoothB,size: 20,),
+                    SizedBox(width: 15,),
+                    Text('Conectar wearable'),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 10),
+
               Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
@@ -107,12 +153,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
 
-              const SizedBox(
-                height: 20,
-              ),
-
               // Botón para agregar un nuevo perro
-
 
               /*ElevatedButton(
                 onPressed: () {
@@ -121,89 +162,146 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Text('Agregar un nuevo perro'),
               ),*/
 
-              const SizedBox(height: 20),
+              //const SizedBox(height: 20),
 
               // Mascotas
-              FutureBuilder<List<Dog>>(
-                future: _dogService.getDogsByOwnerId(
-                    _idOwner), // Reemplaza con tu lógica de obtención de perros
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator(); // Muestra un indicador de carga mientras se obtienen los datos
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Text(
-                        'No tienes ningun perro registrado.'); // Mensaje si no hay perros
-                  } else {
-                    // Si hay datos, muestra la lista de perros en tarjetas de mascota
-                    final dogs = snapshot.data!;
-                    return Column(
-                      children: [
-                        for (final dog in dogs)
-                          Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+
+              // Si hay datos, muestra la lista de perros en tarjetas de mascota
+              //final dogs = snapshot.data!;
+              //selectedDog = dogs[indexSelectedDog];
+              Column(
+                children: [
+                  _isLoadingDogs
+                      ? const Center(
+                          child: Padding(
+                              padding: EdgeInsets.only(top: 20),
+                              child: CircularProgressIndicator()),
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Wrap(spacing: 32, runSpacing: 32, children: [
+                            ..._myDogs.asMap().entries.map<Widget>((entry) {
+                              final index = entry.key;
+                              final item = entry.value;
+
+                              return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Stack(children: [
+                                      SelectedUserTile(onTap: () async {
+                                        setState(() {
+                                          indexSelectedDog = index;
+                                          selectedDog =
+                                              _myDogs[indexSelectedDog];
+                                        });
+
+                                        prefs.setString(
+                                            'dogId', selectedDog!.id);
+                                      }),
+                                      if (index == indexSelectedDog)
+                                        Positioned(
+                                            top: 0,
+                                            right: 0,
+                                            child: Card(
+                                              color: Colors.blue,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(80),
+                                              ),
+                                              elevation: 5,
+                                              child: Container(
+                                                alignment: Alignment.center,
+                                                height: 18,
+                                                width: 18,
+                                                child: const Icon(
+                                                  Icons.check,
+                                                  size: 15,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ))
+                                    ]),
+                                    const SizedBox(height: 5),
+                                    Text(item.name,
+                                        style: const TextStyle(fontSize: 12))
+                                  ]);
+                            }).toList(),
+                            Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Información de mi\nmascota  🐕',
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold),
+                                  AddUserButton(onAdduser: () {
+                                    Navigator.of(context)
+                                        .pushNamed('/create_mydog_page');
+                                  }),
+                                  const SizedBox(height: 5),
+                                  const Text('Agregar otra\nmascota',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 12))
+                                ])
+                          ]),
+                        ),
+                  (selectedDog != null)
+                      ? Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Información de mi\nmascota  🐕',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).pushNamed(
+                                              '/edit_mydog_page',
+                                              arguments: selectedDog!.id);
+                                        },
+                                        child: const Icon(
+                                          Icons.edit,
+                                          size: 24,
+                                          color: AppColors.primaryColor,
                                         ),
-                                        GestureDetector(
-                                          onTap: () {
-                                            Navigator.of(context).pushNamed(
-                                                '/edit_mydog_page',
-                                                arguments: dog.id);
-                                          },
-                                          child: const Icon(
-                                            Icons.edit,
-                                            size: 24,
-                                            color: AppColors.primaryColor,
-                                          ),
-                                        )
-                                      ]),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    'Nombre: ${dog.name}',
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    'Edad: ${dog.age} años',
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    'Raza: ${dog.breed_id}',
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    'Peso: ${dog.weight} kg',
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 10),
-                                ],
-                              ),
+                                      )
+                                    ]),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'Nombre: ${selectedDog!.name}',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'Edad: ${selectedDog!.age} años',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'Raza: ${selectedDog!.breed_id}',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'Peso: ${selectedDog!.weight} kg',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
                             ),
                           ),
-                      ],
-                    );
-                  }
-                },
+                        )
+                      : SizedBox()
+                ],
               ),
               SizedBox(
                 height: 30,
@@ -226,5 +324,9 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
+  }
+
+  void handleContainerTap(int index) {
+    setState(() {});
   }
 }
