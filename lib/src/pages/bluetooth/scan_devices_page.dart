@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:heartdog/src/models/BLE_item.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
@@ -21,7 +22,6 @@ class ScanDevicesPage extends StatefulWidget {
 }
 
 class ScanDevicesPageState extends State<ScanDevicesPage> {
-
   StreamSubscription<List<BluetoothDevice>>? _connectedDevicesSubscription;
   StreamSubscription<List<ScanResult>>? _scanResultsSubscription;
 
@@ -100,7 +100,8 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
         _addDeviceTolist(device, 0);
       }
     });
-    _scanResultsSubscription = FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
+    _scanResultsSubscription =
+        FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
       //_cleanDeviceList();
 
       for (ScanResult result in results) {
@@ -114,7 +115,6 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     });
 
     FlutterBluePlus.startScan(removeIfGone: const Duration(seconds: 5));
-    
   }
 
   @override
@@ -133,10 +133,27 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     for (BleItem item in widget.devicesList) {
       /// FOUNDED DEVICE CARD
       foundDevices.add(GestureDetector(
-        onTap: () {
+        onTap: () async {
+          FlutterBluePlus.stopScan();
+          try {
+            await item.device.connect(autoConnect: false);
+            
+          } on PlatformException catch (e) {
+            if (e.code != 'already_connected') {
+              rethrow;
+            }
+          } finally {
+            _services = await item.device.discoverServices();
+          }
+
           setState(() {
             item.isTouched = true;
           });
+          await Future.delayed(const Duration(seconds: 3));
+          setState(() {
+            _connectedDevice = item.device;
+          });
+
         },
         onTapDown: (_) {
           setState(() {
@@ -196,6 +213,8 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w700, fontSize: 20),
                           ),
+
+                          (_connectedDevice == null)?
                           const Row(
                             children: [
                               Text('Conectando...'),
@@ -210,7 +229,8 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
                                 ),
                               ),
                             ],
-                          )
+                          ):
+                          const Text('Conexión exitosa')
                         ],
                       )
                     : Text(
@@ -226,48 +246,7 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     }
 
     return Column(children: [
-      // SEARCH BUTTON & STOP SEARCH BUTTON
-      /*Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ElevatedButton(
-            onPressed: () async {
-              await FlutterBluePlus.stopScan();
-              FlutterBluePlus.startScan();
-              setState(() {
-                widget.devicesList.clear();
-              });
-            },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.brown,
-                fixedSize: Size(MediaQuery.of(context).size.width * 0.38,
-                    MediaQuery.of(context).size.height * 0.06)),
-            child: Text(
-              'SEARCH DEVICES',
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                FlutterBluePlus.stopScan();
-              });
-            },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 63, 44, 38),
-                fixedSize: Size(MediaQuery.of(context).size.width * 0.38,
-                    MediaQuery.of(context).size.height * 0.06)),
-            child: Text(
-              'STOP SEARCH',
-            ),
-          )
-        ],
-      ),
-      const SizedBox(height: 25),
-      Text(
-        'DEVICES FOUND:',
-        textAlign: TextAlign.left,
-      ),*/
-
+      
       const SizedBox(height: 10),
       Expanded(
         child: ListView(
@@ -280,7 +259,7 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     ]);
   }
 
-  _buildConnectDeviceView() {
+  /*_buildConnectDeviceView() {
     for (BluetoothService service in _services) {
       for (BluetoothCharacteristic characteristic in service.characteristics) {
         /// CHECK IF READ AND WRITE PROPERTIES AVAILABLE
@@ -597,13 +576,14 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
       ],
     );
   }
-
+  */
   //ListView _buildView() {
   _buildView() {
-    if (_connectedDevice != null) {
+    return _buildListViewOfDevices();
+    /*if (_connectedDevice != null) {
       return _buildConnectDeviceView();
     }
-    return _buildListViewOfDevices();
+    return _buildListViewOfDevices();*/
   }
 
   @override
