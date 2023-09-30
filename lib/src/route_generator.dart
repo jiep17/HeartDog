@@ -12,7 +12,7 @@ import 'package:heartdog/src/pages/register_user_page.dart';
 class RouteGenerator{
   static Route<dynamic> generateRoute(RouteSettings settings){
     switch (settings.name){
-      case '/h':return MaterialPageRoute(builder: (context)=> const LoginPage() ) ;
+      case '/':return MaterialPageRoute(builder: (context)=> const LoginPage() ) ;
       //case '/home': return MaterialPageRoute(builder: (context) => const HomePage());
       case '/controlpages': return MaterialPageRoute(builder: (context) => const ControlPages());
       case '/edit_info_page': return MaterialPageRoute(builder: (context) => const EditPersonalInfoPage());
@@ -23,7 +23,7 @@ class RouteGenerator{
           builder: (context) => EditMyDogPage(dogId: dogId),
         );
       case '/register_user': return MaterialPageRoute(builder: (context) => const RegisterUserPage());
-      case '/': return MaterialPageRoute(builder: (context) =>  ScanDevicesPage());
+      case '/scan_devices': return MaterialPageRoute(builder: (context) =>  ScanDevicesPage(), settings:const RouteSettings(name: '/scan_devices'));
       default: return _errorRoute();
     }
   }

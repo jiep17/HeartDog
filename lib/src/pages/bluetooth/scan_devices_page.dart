@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:heartdog/src/models/BLE_item.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
@@ -21,6 +21,10 @@ class ScanDevicesPage extends StatefulWidget {
 }
 
 class ScanDevicesPageState extends State<ScanDevicesPage> {
+
+  StreamSubscription<List<BluetoothDevice>>? _connectedDevicesSubscription;
+  StreamSubscription<List<ScanResult>>? _scanResultsSubscription;
+
   final _writeController = TextEditingController();
   BluetoothDevice? _connectedDevice;
   List<BluetoothService> _services = [];
@@ -39,6 +43,9 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     for (BleItem item in widget.devicesList) {
       if (item.device.remoteId == device.remoteId) {
         existItem = true;
+        setState(() {
+          item.rssi = rssi;
+        });
       }
     }
 
@@ -49,11 +56,11 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     }
   }
 
-  _cleanDeviceList() {
+  /*_cleanDeviceList() {
     setState(() {
       widget.devicesList.clear();
     });
-  }
+  }*/
 
   void _toggleNotfiy(characteristic) async {
     setState(() {
@@ -86,27 +93,38 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     //   _connectedDevice!.disconnect();
     //   print('device disconnected');
     // }
-
-    FlutterBluePlus.connectedSystemDevices
+    _connectedDevicesSubscription = FlutterBluePlus.connectedSystemDevices
         .asStream()
         .listen((List<BluetoothDevice> devices) {
       for (BluetoothDevice device in devices) {
         _addDeviceTolist(device, 0);
       }
     });
-    FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
-      _cleanDeviceList();
+    _scanResultsSubscription = FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
+      //_cleanDeviceList();
 
       for (ScanResult result in results) {
         //print(results);
 
         if (result.device.localName == targetDeviceName) {
-          print(result.rssi);
+          //print(result.rssi);
           _addDeviceTolist(result.device, result.rssi);
         }
       }
     });
+
     FlutterBluePlus.startScan(removeIfGone: const Duration(seconds: 5));
+    
+  }
+
+  @override
+  void dispose() {
+    // Realiza tareas de limpieza o liberación de recursos aquí
+    _connectedDevicesSubscription?.cancel();
+    _scanResultsSubscription?.cancel();
+    FlutterBluePlus.stopScan();
+    super.dispose(); // No olvides llamar a la implementación de la superclase
+    //print("Se detuvo el scanero y se cerro la pagina");
   }
 
   //ListView _buildListViewOfDevices() {
@@ -114,43 +132,94 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     List<Widget> foundDevices = <Widget>[];
     for (BleItem item in widget.devicesList) {
       /// FOUNDED DEVICE CARD
-      foundDevices.add(Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Column(
-                children: [
-                  SignalStrengthIndicator.bars(
-                    value: 60,
-                    maxValue: 50,
-                    minValue: 0,
-                    size: 30,
-                    activeColor: AppColors.blueColor,
-                    barCount: 5,
-                    radius: const Radius.circular(20),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Text(
-                    item.rssi.toString(),
-                    style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12),
-                  )
-                ],
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Text(
-                item.device.localName,
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
-              ),
-            ],
+      foundDevices.add(GestureDetector(
+        onTap: () {
+          setState(() {
+            item.isTouched = true;
+          });
+        },
+        onTapDown: (_) {
+          setState(() {
+            item.isHovered = true;
+          });
+        },
+        onTapUp: (_) {
+          setState(() {
+            item.isHovered = false;
+          });
+        },
+        onTapCancel: () {
+          setState(() {
+            item.isHovered = false;
+          });
+        },
+        child: Card(
+          elevation: item.isHovered ? 5 : 1,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Column(
+                  children: [
+                    SignalStrengthIndicator.bars(
+                      value: 100 + item.rssi,
+                      maxValue: 100,
+                      minValue: 0,
+                      size: 30,
+                      activeColor: AppColors.blueColor,
+                      barCount: 5,
+                      radius: const Radius.circular(20),
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      item.rssi.toString(),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w100, fontSize: 12),
+                    )
+                  ],
+                ),
+                const SizedBox(
+                  width: 20,
+                ),
+                (item.isTouched)
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.device.localName,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 20),
+                          ),
+                          const Row(
+                            children: [
+                              Text('Conectando...'),
+                              SizedBox(
+                                width: 5,
+                              ),
+                              SizedBox(
+                                height: 10,
+                                width: 10,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      )
+                    : Text(
+                        item.device.localName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 20),
+                      ),
+              ],
+            ),
           ),
         ),
       ));
@@ -566,52 +635,6 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
-                    const SizedBox(height: 20),
-                    Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Column(
-                              children: [
-                                SignalStrengthIndicator.bars(
-                                  value: 60,
-                                  maxValue: 50,
-                                  minValue: 0,
-                                  size: 30,
-                                  activeColor: AppColors.blueColor,
-                                  barCount: 5,
-                                  radius: const Radius.circular(20),
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Text(
-                                  '- 45',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w100,
-                                      fontSize: 12),
-                                )
-                              ],
-                            ),
-                            SizedBox(
-                              width: 20,
-                            ),
-                            Text(
-                              'IPhone 12 PRO',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w700, fontSize: 20),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
                     SizedBox(
                         height: MediaQuery.of(context).size.height * 0.72,
                         child: _buildView()),
