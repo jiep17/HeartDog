@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AddUserButton extends StatelessWidget {
  final void Function() onAdduser;
 
-  const AddUserButton({required Key key, required this.onAdduser}) : super(key: key);
+  const AddUserButton({ Key? key, required this.onAdduser}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -11,8 +11,8 @@ class AddUserButton extends StatelessWidget {
       onTap:onAdduser,
       child: Container(
         alignment: Alignment.center,
-        height: 55,
-        width: 55,
+        height: 60,
+        width: 65,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: Colors.blueGrey,

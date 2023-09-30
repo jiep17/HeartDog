@@ -138,11 +138,11 @@ class _MonitoringPageState extends State<MonitoringPage> {
                           child: Column(
                             children: [
                               const Icon(
-                                Icons.air_outlined,
+                                Icons.query_stats,
                                 color: AppColors.primaryColor,
                               ),
                               const Text(
-                                'Frecuencia respiratoria',
+                                'Electrocardiograma',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -150,8 +150,8 @@ class _MonitoringPageState extends State<MonitoringPage> {
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                '${valoresFisiologicos[1]} rpm',
-                                style: const TextStyle(fontSize: 14),
+                                'Normal',
+                                style: const TextStyle(fontSize: 14, color: Colors.green,),
                               ),
                             ],
                           ),
@@ -160,108 +160,109 @@ class _MonitoringPageState extends State<MonitoringPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Image.asset(
-                              'assets/images/icon-dog-running.png',
-                              width: 30,
-                              height: 30,
-                            ),
-                            const Text(
-                              'Actividad física',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              valoresFisiologicos[2].toString(),
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Image.asset(
-                              'assets/images/icon-dog-sleep.png',
-                              width: 30,
-                              height: 30,
-                            ),
-                            const Text(
-                              'Sueño',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              valoresFisiologicos[3].toString(),
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            const Icon(
-                              Icons.add_reaction_outlined,
-                              // Icons.stress_outlined,
-                              color: AppColors.primaryColor,
-                            ),
-                            const Text(
-                              'Nivel de estrés',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              valoresFisiologicos[4].toString(),
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            const Icon(
-                              Icons.local_drink_outlined,
-                              color: AppColors.primaryColor,
-                            ),
-                            const Text(
-                              'Nivel de hidratación',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              valoresFisiologicos[5].toString(),
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  //   children: [
+                  //     Expanded(
+                  //       child: Column(
+                  //         children: [
+                  //           Image.asset(
+                  //             'assets/images/icon-dog-running.png',
+                  //             width: 30,
+                  //             height: 30,
+                  //           ),
+                  //           const Text(
+                  //             'Actividad física',
+                  //             style: TextStyle(
+                  //               fontSize: 16,
+                  //               fontWeight: FontWeight.bold,
+                  //             ),
+                  //           ),
+                  //           const SizedBox(height: 5),
+                  //           Text(
+                  //             valoresFisiologicos[2].toString(),
+                  //             style: const TextStyle(fontSize: 14),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //     Expanded(
+                  //       child: Column(
+                  //         children: [
+                  //           Image.asset(
+                  //             'assets/images/icon-dog-sleep.png',
+                  //             width: 30,
+                  //             height: 30,
+                  //           ),
+                  //           const Text(
+                  //             'Sueño',
+                  //             style: TextStyle(
+                  //               fontSize: 16,
+                  //               fontWeight: FontWeight.bold,
+                  //             ),
+                  //           ),
+                  //           const SizedBox(height: 5),
+                  //           Text(
+                  //             valoresFisiologicos[3].toString(),
+                  //             style: const TextStyle(fontSize: 14),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 10),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  //   children: [
+                  //     Expanded(
+                  //       child: Column(
+                  //         children: [
+                  //           const Icon(
+                  //             Icons.add_reaction_outlined,
+                  //             // Icons.stress_outlined,
+                  //             color: AppColors.primaryColor,
+                  //           ),
+                  //           const Text(
+                  //             'Nivel de estrés',
+                  //             style: TextStyle(
+                  //               fontSize: 16,
+                  //               fontWeight: FontWeight.bold,
+                  //             ),
+                  //           ),
+                  //           const SizedBox(height: 5),
+                  //           Text(
+                  //             valoresFisiologicos[4].toString(),
+                  //             style: const TextStyle(fontSize: 14),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //     Expanded(
+                  //       child: Column(
+                  //         children: [
+                  //           const Icon(
+                  //             Icons.local_drink_outlined,
+                  //             color: AppColors.primaryColor,
+                  //           ),
+                  //           const Text(
+                  //             'Nivel de hidratación',
+                  //             style: TextStyle(
+                  //               fontSize: 16,
+                  //               fontWeight: FontWeight.bold,
+                  //             ),
+                  //           ),
+                  //           const SizedBox(height: 5),
+                  //           Text(
+                  //             valoresFisiologicos[5].toString(),
+                  //             style: const TextStyle(fontSize: 14),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                
                 ],
               ),
             ),

@@ -4,7 +4,7 @@ class UserAvatar extends StatelessWidget {
   final String? image;
   final double avatarSize;
 
-  const UserAvatar({required Key key, this.image, required this.avatarSize}) : super(key: key);
+  const UserAvatar({ Key? key, this.image, required this.avatarSize}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     // final size = MediaQuery.of(context).size;

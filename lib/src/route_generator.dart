@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:heartdog/src/pages/bluetooth/scan_devices_page.dart';
 import 'package:heartdog/src/pages/control_pages.dart';
 import 'package:heartdog/src/pages/login_page.dart';
 import 'package:heartdog/src/pages/monitoring/ecg_graph_pages.dart';
@@ -24,6 +25,7 @@ class RouteGenerator{
         );
       case '/register_user': return MaterialPageRoute(builder: (context) => const RegisterUserPage());
       case '/ecg_graph': return MaterialPageRoute(builder: (context) => ECGGraphPage());
+      case '/scan_devices': return MaterialPageRoute(builder: (context) =>  ScanDevicesPage(), settings:const RouteSettings(name: '/scan_devices'));
       default: return _errorRoute();
     }
   }

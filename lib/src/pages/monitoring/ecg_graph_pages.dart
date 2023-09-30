@@ -30,7 +30,7 @@ class _ECGGraphPageState extends State<ECGGraphPage> {
     // final dogId = "0b1f6d8e-886f-49c1-8b4c-19605338ec6e";
     final now = DateTime.now();
     final timestampEnd = now.millisecondsSinceEpoch;
-    final timestampStart = now.subtract(const Duration(seconds: 5)).millisecondsSinceEpoch;
+    final timestampStart = now.subtract(const Duration(seconds: 4)).millisecondsSinceEpoch;
     final response = await ecgService.getECGData(dogId, timestampStart, timestampEnd);
     return response;
   }
