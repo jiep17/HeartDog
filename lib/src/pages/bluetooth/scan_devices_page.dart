@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:heartdog/src/models/BLE_item.dart';
+import 'package:heartdog/src/models/ble_notify_data.dart';
+import 'package:heartdog/src/models/ble_write_data.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
 
 import '../../util/app_colors.dart';
@@ -12,10 +14,11 @@ import '../../util/app_colors.dart';
 class ScanDevicesPage extends StatefulWidget {
   ScanDevicesPage({Key? key}) : super(key: key);
   final List<BleItem> devicesList = <BleItem>[];
-  final Map<Guid, List<int>> readValues = <Guid, List<int>>{};
+  //final Map<Guid, List<int>> readValues = <Guid, List<int>>{};
 
   // OWN
-  late BluetoothCharacteristic connectedCharacteristic;
+  BluetoothCharacteristic? connectedWriteCharacteristic;
+  BluetoothCharacteristic? connectedNotifyCharacteristic;
 
   @override
   State<StatefulWidget> createState() => ScanDevicesPageState();
@@ -24,8 +27,12 @@ class ScanDevicesPage extends StatefulWidget {
 class ScanDevicesPageState extends State<ScanDevicesPage> {
   StreamSubscription<List<BluetoothDevice>>? _connectedDevicesSubscription;
   StreamSubscription<List<ScanResult>>? _scanResultsSubscription;
+  StreamSubscription<List<int>>? _notifySubscription;
 
-  final _writeController = TextEditingController();
+  final _ssidController = TextEditingController();
+  final _passWifiController = TextEditingController();
+  bool _obscurePasswordWifi = false;
+
   BluetoothDevice? _connectedDevice;
   List<BluetoothService> _services = [];
 
@@ -33,9 +40,9 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
   bool isNotifiy = false;
   final targetDeviceName = "IoT Barkbeat Device";
 
-  List<dynamic> receivedMessages = [
-    // {'message': 'Message1', 'time': '12:01'}, // EXAMPLE
-  ];
+  List<BleNotifyData> _receivedMessages = [];
+
+  BleItem? _selectedItem;
 
   _addDeviceTolist(final BluetoothDevice device, final int rssi) {
     //print(device);
@@ -53,34 +60,6 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
       setState(() {
         widget.devicesList.add(BleItem(device: device, rssi: rssi));
       });
-    }
-  }
-
-  /*_cleanDeviceList() {
-    setState(() {
-      widget.devicesList.clear();
-    });
-  }*/
-
-  void _toggleNotfiy(characteristic) async {
-    setState(() {
-      isNotifiy = !isNotifiy;
-    });
-    if (isNotifiy) {
-      characteristic.value.listen((value) {
-        print('notify: ');
-        print(utf8.decode(value));
-        String msg = utf8.decode(value);
-        var dt = DateTime.now();
-        String time = '${dt.hour}:${dt.minute}';
-
-        setState(() {
-          receivedMessages.add({'message': msg, 'time': time});
-        });
-      });
-      await characteristic.setNotifyValue(true);
-    } else {
-      await characteristic.setNotifyValue(false);
     }
   }
 
@@ -114,6 +93,8 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
       }
     });
 
+    //widget.connectedCharacteristic = FlutterBluePlus.
+
     FlutterBluePlus.startScan(removeIfGone: const Duration(seconds: 5));
   }
 
@@ -134,26 +115,11 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
       /// FOUNDED DEVICE CARD
       foundDevices.add(GestureDetector(
         onTap: () async {
-          FlutterBluePlus.stopScan();
-          try {
-            await item.device.connect(autoConnect: false);
-            
-          } on PlatformException catch (e) {
-            if (e.code != 'already_connected') {
-              rethrow;
-            }
-          } finally {
-            _services = await item.device.discoverServices();
+          if (_connectedDevice != null) {
+            _disconnectBleDevice();
           }
-
-          setState(() {
-            item.isTouched = true;
-          });
-          await Future.delayed(const Duration(seconds: 3));
-          setState(() {
-            _connectedDevice = item.device;
-          });
-
+          _selectedItem = item;
+          _showWiFiFormDialog(context, item);
         },
         onTapDown: (_) {
           setState(() {
@@ -176,7 +142,7 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
             borderRadius: BorderRadius.circular(10.0),
           ),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -213,24 +179,101 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w700, fontSize: 20),
                           ),
+                          (_connectedDevice == null)
+                              ? const Row(
+                                  children: [
+                                    Text('Conectando...'),
+                                    SizedBox(
+                                      width: 5,
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                      width: 10,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Conexión exitosa'),
+                                    const SizedBox(
+                                      height: 5,
+                                    ),
+                                    Row(
+                                      children: [
+                                        const Text('Comprobación de estado:'),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        SizedBox(
+                                          width: 50,
+                                          child: Row(
+                                            children: [
+                                              if (_receivedMessages.length != 3)
+                                                const SizedBox(
+                                                  height: 7,
+                                                  width: 7,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                  ),
+                                                ),
+                                              const SizedBox(
+                                                width: 10,
+                                              ),
+                                              Text(
+                                                  "${_receivedMessages.length}"),
+                                              const Text("/3"),
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
 
-                          (_connectedDevice == null)?
-                          const Row(
-                            children: [
-                              Text('Conectando...'),
-                              SizedBox(
-                                width: 5,
-                              ),
-                              SizedBox(
-                                height: 10,
-                                width: 10,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ],
-                          ):
-                          const Text('Conexión exitosa')
+                                    const SizedBox(
+                                      height: 5,
+                                    ),
+                                    SizedBox(
+                                      height: 125,
+                                      width: 225,
+                                      child: ListView.builder(
+                                          itemCount: _receivedMessages.length,
+                                          itemBuilder: (context, index) {
+                                            return Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                _receivedMessages[index].success
+                                                    ? const Icon(
+                                                        Icons.check_circle,
+                                                        color: Colors.green,
+                                                      )
+                                                    : const Icon(
+                                                        Icons.cancel,
+                                                        color: Colors.red,
+                                                      ),
+                                                const SizedBox(
+                                                  width: 5,
+                                                ),
+                                                SizedBox(
+                                                    width: 190,
+                                                    child: Text(
+                                                        _receivedMessages[index]
+                                                            .msg,
+                                                        textAlign:
+                                                            TextAlign.justify)),
+                                                const SizedBox(height: 5)
+                                              ],
+                                            );
+                                          }),
+                                    )
+                                    //for(int i = 0; i < 3; i++)
+                                    //Text(receivedMessages[i].msg)
+                                  ],
+                                )
                         ],
                       )
                     : Text(
@@ -246,7 +289,6 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     }
 
     return Column(children: [
-      
       const SizedBox(height: 10),
       Expanded(
         child: ListView(
@@ -259,324 +301,6 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     ]);
   }
 
-  /*_buildConnectDeviceView() {
-    for (BluetoothService service in _services) {
-      for (BluetoothCharacteristic characteristic in service.characteristics) {
-        /// CHECK IF READ AND WRITE PROPERTIES AVAILABLE
-        /// THEN USE THIS CHARACTERISTIC
-        if (characteristic.properties.write) {
-          setState(() {
-            widget.connectedCharacteristic = characteristic;
-          });
-        }
-      }
-    }
-
-    /// RETURN THE ACTIVE CONNECTION SCREEN
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        /// ACTIVE CONNECTION CARD
-        Padding(
-          padding: const EdgeInsets.only(bottom: 14.0),
-          child: Container(
-              decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 63, 44, 38),
-                  borderRadius: BorderRadius.circular(8)),
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.17,
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    // DEVICE NAME
-                    Row(
-                      children: [
-                        const Text(
-                          'Device Name:',
-                          style: TextStyle(fontSize: 14, color: Colors.white),
-                        ),
-                        const SizedBox(width: 15),
-                        Text(
-                          _connectedDevice!.name,
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.brown),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // DEVICE ID
-                    Row(
-                      children: [
-                        const Text(
-                          'Device ID:',
-                          style: TextStyle(fontSize: 14, color: Colors.white),
-                        ),
-                        const SizedBox(width: 10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 29.0),
-                          child: Text(
-                            _connectedDevice!.id.toString(),
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.brown),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // CHARACTERISTIC
-                    Row(
-                      children: [
-                        const Text(
-                          'Characteristic:',
-                          style: TextStyle(fontSize: 14, color: Colors.white),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          widget.connectedCharacteristic.uuid.toString(),
-                          style: TextStyle(
-                              fontSize: 10.2,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.brown),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 25,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          await _connectedDevice?.removeBond();
-                          setState(() {
-                            _connectedDevice?.disconnect();
-                            _connectedDevice = null;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.brown,
-                        ),
-                        child: const Text('Disconnect',
-                            style: TextStyle(fontSize: 12)),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-        ),
-
-        /// END ACTIVE CONNECTION CARD
-
-        const SizedBox(height: 10),
-        Text(
-          'SEND MESSAGE:',
-          textAlign: TextAlign.left,
-        ),
-        const SizedBox(height: 20),
-
-        /// SEND MESSAGE CARD
-        Row(
-          children: [
-            // SEND MESSAGE
-            SizedBox(
-                width: MediaQuery.of(context).size.width * 0.75,
-                height: MediaQuery.of(context).size.width * 0.12,
-                child: TextField(
-                  controller: _writeController,
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                  decoration: InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Color.fromARGB(255, 135, 94, 81),
-                        ),
-                        borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(8),
-                            bottomLeft: Radius.circular(8))),
-
-                    focusedBorder:
-                        const OutlineInputBorder(borderSide: BorderSide.none),
-                    // focusedBorder: OutlineInputBorder(
-                    //     borderSide: BorderSide(color: brownDarkest),
-                    //     borderRadius: const BorderRadius.only(
-                    //         topLeft: Radius.circular(8),
-                    //         bottomLeft: Radius.circular(8))),
-                    hintText: 'Write message to send..',
-                    hintStyle: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white),
-                    fillColor: Color.fromARGB(255, 135, 94, 81),
-                    filled: true,
-                  ),
-                )),
-
-            // SEND BUTTON
-            Expanded(
-              child: GestureDetector(
-                onTap: () async {
-                  await widget.connectedCharacteristic.setNotifyValue(false);
-
-                  /// SEND THE MESSAGE VIA BLUETOOTH
-                  await widget.connectedCharacteristic
-                      .write(utf8.encode('${_writeController.text}\n'));
-
-                  await widget.connectedCharacteristic.setNotifyValue(true);
-
-                  setState(() {
-                    _writeController.clear();
-                    FocusManager.instance.primaryFocus?.unfocus();
-                  });
-
-                  final snackBar = SnackBar(
-                    backgroundColor: Colors.brown,
-                    content: const Center(child: Text('Message send!')),
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                },
-                child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.brown,
-                        borderRadius: const BorderRadius.only(
-                            topRight: Radius.circular(8),
-                            bottomRight: Radius.circular(8))),
-                    alignment: Alignment.center,
-                    height: MediaQuery.of(context).size.width * 0.12,
-                    child: const Icon(
-                      Icons.send,
-                      size: 24,
-                      color: Colors.white,
-                    )),
-              ),
-            ),
-          ],
-        ),
-
-        /// END WRITE MESSAGE CARD
-
-        const SizedBox(height: 25),
-        Text(
-          'RECEIVED MESSAGES:',
-          textAlign: TextAlign.left,
-        ),
-        const SizedBox(height: 17),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            /// NOTIFY BUTTON
-            SizedBox(
-              width: 58,
-              height: 18,
-              child: ElevatedButton(
-                onPressed: () {
-                  _toggleNotfiy(widget.connectedCharacteristic);
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: isNotifiy ? Colors.green : Colors.brown),
-                child: const Text('Notify',
-                    style: TextStyle(fontSize: 9, color: Colors.white)),
-              ),
-            ),
-
-            const SizedBox(width: 100),
-
-            /// END NOTIFY BUTTON
-
-            /// CLEAR BUTTON
-            SizedBox(
-              width: 58,
-              height: 18,
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    receivedMessages.clear();
-                  });
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.brown),
-                child: const Text('Clear',
-                    style: TextStyle(fontSize: 9, color: Colors.white)),
-              ),
-            ),
-
-            /// END CLEAR BUTTON
-          ],
-        ),
-
-        const SizedBox(height: 8),
-
-        /// RECEIVE MESSAGES
-        Container(
-          decoration: BoxDecoration(
-              color: Color.fromARGB(255, 214, 108, 75),
-              borderRadius: BorderRadius.circular(8)),
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.27,
-                    child: SingleChildScrollView(
-                      child: ListView.builder(
-                          shrinkWrap: true,
-                          physics: const ScrollPhysics(),
-                          itemCount: receivedMessages.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            /// RECEIVED MESSAGE CARD
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: Color.fromARGB(255, 200, 125, 103)),
-                                width: MediaQuery.of(context).size.width * 0.75,
-                                child: Stack(children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(12.0),
-                                    child: Text(
-                                      receivedMessages[index]['message']
-                                          .toString(),
-                                      style: const TextStyle(
-                                          fontSize: 13, color: Colors.white),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    right: 8,
-                                    bottom: 8,
-                                    child: Text(
-                                      receivedMessages[index]['time']
-                                          .toString(),
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Color.fromARGB(
-                                              218, 255, 255, 255)),
-                                    ),
-                                  )
-                                ]),
-                              ),
-                            );
-
-                            /// END RECEIVED MESSAGE CARD
-                          }),
-                    )),
-
-                /// END RECEIVED MESSAGES
-              ],
-            ),
-          ),
-        )
-      ],
-    );
-  }
-  */
   //ListView _buildView() {
   _buildView() {
     return _buildListViewOfDevices();
@@ -624,5 +348,231 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
             ),
           ),
         ));
+  }
+
+  void getBLECharacteristics() {
+    for (BluetoothService service in _services) {
+      for (BluetoothCharacteristic characteristic in service.characteristics) {
+        if (characteristic.properties.write) {
+          widget.connectedWriteCharacteristic = characteristic;
+        } else if (characteristic.properties.notify) {
+          widget.connectedNotifyCharacteristic = characteristic;
+          widget.connectedNotifyCharacteristic?.setNotifyValue(true);
+          //Asignamos accion al ser notificado
+          _notifySubscription = widget
+              .connectedNotifyCharacteristic?.lastValueStream
+              .listen((value) {
+            if (value.isNotEmpty) {
+              //print('notify: ');
+              _manageMessagesReceived(value);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> sendWifiCredentialsByBluetooth() async {
+    BleWriteData wifiData = BleWriteData(
+        subject: 'wifi-credentials',
+        ssid: _ssidController.text,
+        password: _passWifiController.text);
+
+    /// SEND THE MESSAGE VIA BLUETOOTH
+    await widget.connectedWriteCharacteristic!
+        .write(utf8.encode(jsonEncode(wifiData.toJson())));
+  }
+
+  void _showWiFiFormDialog(BuildContext context, BleItem item) {
+    final dialogContext = context;
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, setStateInsideDialog) {
+            return AlertDialog(
+              title: const Text("Credenciales WiFi"),
+              content: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Text(
+                    "Ingresa las credenciales para conectar el dispositivo a internet."),
+                const SizedBox(
+                  height: 15,
+                ),
+                TextFormField(
+                  controller: _ssidController,
+                  keyboardType: TextInputType.text,
+                  cursorColor: AppColors.primaryColor,
+                  style: const TextStyle(
+                    color: AppColors.textColor,
+                  ),
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: AppColors.primaryColor, width: 1.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Colors.blueGrey, width: 1.0),
+                    ),
+                    hintText: 'Nombre de la red WIFI',
+                    hintStyle: TextStyle(
+                      color: Colors.grey,
+                    ),
+                    counterStyle: TextStyle(color: Colors.white),
+                    focusColor: Colors.white,
+                    hoverColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                TextFormField(
+                  controller: _passWifiController,
+                  keyboardType: TextInputType.text,
+                  cursorColor: AppColors.primaryColor,
+                  style: const TextStyle(
+                    color: AppColors.textColor,
+                  ),
+                  obscureText: !_obscurePasswordWifi,
+                  decoration: InputDecoration(
+                    suffixIcon: GestureDetector(
+                      onTap: () {
+                        setStateInsideDialog(
+                          () {
+                            _obscurePasswordWifi = !_obscurePasswordWifi;
+                          },
+                        );
+                      },
+                      child: Icon(
+                          _obscurePasswordWifi
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.blueGrey),
+                    ),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: AppColors.primaryColor, width: 1.0),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Colors.blueGrey, width: 1.0),
+                    ),
+                    hintText: '',
+                    hintStyle: const TextStyle(
+                      color: Colors.grey,
+                    ),
+                    counterStyle: const TextStyle(color: Colors.white),
+                    focusColor: Colors.white,
+                    hoverColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      
+
+                      try {
+                        await item.device.connect(autoConnect: false);
+                      } on PlatformException catch (e) {
+                        if (e.code != 'already_connected') {
+                          rethrow;
+                        }
+                      } finally {
+                        _services = await item.device.discoverServices();
+                        FlutterBluePlus.stopScan();
+
+                        setState(() {
+                          item.isTouched = true;
+                        });
+
+                        await Future.delayed(const Duration(seconds: 3));
+
+                        setState(() {
+                          _connectedDevice = item.device;
+                        });
+
+                        getBLECharacteristics();
+                        await sendWifiCredentialsByBluetooth();
+                        await sendDogUUIDbyBluetooth();
+
+                        setState(() {
+                          _receivedMessages.clear();
+                        });
+                        _passWifiController.text = "";
+                        Navigator.of(dialogContext).pop();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor),
+                    child: const Text(
+                      "Conectar",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                )
+              ]),
+            );
+          });
+        });
+  }
+
+  void _manageMessagesReceived(List<int> value) {
+    String jsonStr = utf8.decode(value);
+    Map<String, dynamic> jsonData = json.decode(jsonStr);
+
+    BleNotifyData bleNotifyData = BleNotifyData(
+      success: jsonData['success'],
+      msg: jsonData['msg'],
+    );
+
+    setState(() {
+      if (_receivedMessages.length < 3) {
+        _receivedMessages.add(bleNotifyData);
+      }
+    });
+
+    if (_receivedMessages.length == 3) {
+      int countFails = 0;
+      for (var msg in _receivedMessages) {
+        if (msg.success == false) countFails += 1;
+      }
+
+      if (countFails == 3) {
+        Future.delayed(const Duration(seconds: 3));
+        _disconnectBleDevice();
+      }
+    }
+  }
+
+  _disconnectBleDevice() {
+    //Eliminamos los servicios
+    _services = [];
+
+    //Desconectamos el actual dispostivo si existe
+    _selectedItem?.device.disconnect(timeout: 3);
+    _selectedItem?.isTouched = false;
+    _connectedDevice = null;
+
+    //Cancelamos la suscripcion del characteristics
+    _notifySubscription?.cancel();
+    _notifySubscription = null;
+    widget.connectedNotifyCharacteristic = null;
+    widget.connectedWriteCharacteristic = null;
+
+    FlutterBluePlus.startScan();
+  }
+
+  Future<void> sendDogUUIDbyBluetooth() async {
+    BleWriteData dogUuidData = BleWriteData(
+      subject: 'dog-id',
+      uuid: 'dasdsad-dsadsad-dsadsad',
+    );
+
+    await widget.connectedWriteCharacteristic!
+      .write(utf8.encode(jsonEncode(dogUuidData.toJson())));
   }
 }
