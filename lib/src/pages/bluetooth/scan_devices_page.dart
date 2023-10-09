@@ -6,8 +6,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:heartdog/src/models/BLE_item.dart';
 import 'package:heartdog/src/models/ble_notify_data.dart';
 import 'package:heartdog/src/models/ble_write_data.dart';
+import 'package:heartdog/src/util/widget_properties.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
-
 import '../../util/app_colors.dart';
 
 // ignore: must_be_immutable
@@ -29,6 +29,7 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
   StreamSubscription<List<ScanResult>>? _scanResultsSubscription;
   StreamSubscription<List<int>>? _notifySubscription;
 
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _ssidController = TextEditingController();
   final _passWifiController = TextEditingController();
   bool _obscurePasswordWifi = false;
@@ -40,9 +41,11 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
   bool isNotifiy = false;
   final targetDeviceName = "IoT Barkbeat Device";
 
+  // ignore: prefer_final_fields
   List<BleNotifyData> _receivedMessages = [];
 
   BleItem? _selectedItem;
+
 
   _addDeviceTolist(final BluetoothDevice device, final int rssi) {
     //print(device);
@@ -114,12 +117,17 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     for (BleItem item in widget.devicesList) {
       /// FOUNDED DEVICE CARD
       foundDevices.add(GestureDetector(
-        onTap: () async {
+        onDoubleTap: () {
           if (_connectedDevice != null) {
-            _disconnectBleDevice();
+            _showDisconnectDialog(context);
+            _receivedMessages.clear();
           }
-          _selectedItem = item;
-          _showWiFiFormDialog(context, item);
+        },
+        onTap: () async {
+          if (_connectedDevice == null) {
+            _selectedItem = item;
+            _showWiFiFormDialog(context, item);
+          }
         },
         onTapDown: (_) {
           setState(() {
@@ -339,6 +347,23 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
+                    const SizedBox(height: 10),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        Text(
+                          'Toque uno para conectarse',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
                     SizedBox(
                         height: MediaQuery.of(context).size.height * 0.72,
                         child: _buildView()),
@@ -384,126 +409,102 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
   }
 
   void _showWiFiFormDialog(BuildContext context, BleItem item) {
-    final dialogContext = context;
+    //final dialogContext = context;
 
     showDialog(
         context: context,
-        builder: (BuildContext context) {
-          return StatefulBuilder(builder: (context, setStateInsideDialog) {
-            return AlertDialog(
-              title: const Text("Credenciales WiFi"),
-              content: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Text(
-                    "Ingresa las credenciales para conectar el dispositivo a internet."),
-                const SizedBox(
-                  height: 15,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return StatefulBuilder(
+              builder: (statefulContext, setStateInsideDialog) {
+            return FadeTransition(
+              opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+                CurvedAnimation(
+                  parent: ModalRoute.of(statefulContext)!.animation!,
+                  curve: Curves.easeInOut,
                 ),
-                TextFormField(
-                  controller: _ssidController,
-                  keyboardType: TextInputType.text,
-                  cursorColor: AppColors.primaryColor,
-                  style: const TextStyle(
-                    color: AppColors.textColor,
-                  ),
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: AppColors.primaryColor, width: 1.0),
+              ),
+              child: AlertDialog(
+                title: const Text("Credenciales WiFi"),
+                content: Form(
+                  key: _formKey,
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    const Text(
+                        "Ingresa las credenciales para conectar el dispositivo a internet."),
+                    const SizedBox(
+                      height: 15,
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.blueGrey, width: 1.0),
-                    ),
-                    hintText: 'Nombre de la red WIFI',
-                    hintStyle: TextStyle(
-                      color: Colors.grey,
-                    ),
-                    counterStyle: TextStyle(color: Colors.white),
-                    focusColor: Colors.white,
-                    hoverColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                TextFormField(
-                  controller: _passWifiController,
-                  keyboardType: TextInputType.text,
-                  cursorColor: AppColors.primaryColor,
-                  style: const TextStyle(
-                    color: AppColors.textColor,
-                  ),
-                  obscureText: !_obscurePasswordWifi,
-                  decoration: InputDecoration(
-                    suffixIcon: GestureDetector(
-                      onTap: () {
-                        setStateInsideDialog(
-                          () {
-                            _obscurePasswordWifi = !_obscurePasswordWifi;
-                          },
-                        );
-                      },
-                      child: Icon(
-                          _obscurePasswordWifi
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.blueGrey),
-                    ),
-                    enabledBorder: const OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: AppColors.primaryColor, width: 1.0),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.blueGrey, width: 1.0),
-                    ),
-                    hintText: '',
-                    hintStyle: const TextStyle(
-                      color: Colors.grey,
-                    ),
-                    counterStyle: const TextStyle(color: Colors.white),
-                    focusColor: Colors.white,
-                    hoverColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      
-
-                      try {
-                        await item.device.connect(autoConnect: false);
-                      } on PlatformException catch (e) {
-                        if (e.code != 'already_connected') {
-                          rethrow;
+                    TextFormField(
+                      controller: _ssidController,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Por favor, ingrese el nombre';
                         }
-                      } finally {
-                        _services = await item.device.discoverServices();
-                        FlutterBluePlus.stopScan();
-
-                        setState(() {
-                          item.isTouched = true;
-                        });
-
-                        await Future.delayed(const Duration(seconds: 3));
-
-                        setState(() {
-                          _connectedDevice = item.device;
-                        });
-
-                        getBLECharacteristics();
-                        await sendWifiCredentialsByBluetooth();
-                        await sendDogUUIDbyBluetooth();
-
-                        setState(() {
-                          _receivedMessages.clear();
-                        });
-                        _passWifiController.text = "";
-                        Navigator.of(dialogContext).pop();
+                        return null;
+                      },
+                      keyboardType: TextInputType.text,
+                      cursorColor: AppColors.primaryColor,
+                      style: const TextStyle(
+                        color: AppColors.textColor,
+                      ),
+                      decoration: WidgetCustomProperties.customInputDecoration(
+                          hintText: "Nombre de la red WiFi"),
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    TextFormField(
+                      controller: _passWifiController,
+                      keyboardType: TextInputType.text,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Por favor, ingrese la contraseña';
+                        }
+                        return null;
+                      },
+                      cursorColor: AppColors.primaryColor,
+                      style: const TextStyle(
+                        color: AppColors.textColor,
+                      ),
+                      obscureText: !_obscurePasswordWifi,
+                      decoration:
+                          WidgetCustomProperties.customPasswordInputDecoration(
+                        gestureDetector: GestureDetector(
+                          onTap: () {
+                            setStateInsideDialog(
+                              () {
+                                _obscurePasswordWifi = !_obscurePasswordWifi;
+                              },
+                            );
+                          },
+                          child: Icon(
+                              _obscurePasswordWifi
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.blueGrey),
+                        ),
+                      ),
+                    )
+                  ]),
+                ),
+                actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                actionsAlignment: MainAxisAlignment.spaceBetween,
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(statefulContext).pop();
+                      },
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(color: AppColors.primaryColor),
+                      )),
+                  ElevatedButton(
+                    onPressed: () async {
+                      // ignore: use_build_context_synchronously
+                      if (_formKey.currentState!.validate()) {
+                        Navigator.of(statefulContext).pop();
+                        await _connectBleDevice(item);
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -512,9 +513,9 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
                       "Conectar",
                       style: TextStyle(color: Colors.white),
                     ),
-                  ),
-                )
-              ]),
+                  )
+                ],
+              ),
             );
           });
         });
@@ -573,6 +574,72 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     );
 
     await widget.connectedWriteCharacteristic!
-      .write(utf8.encode(jsonEncode(dogUuidData.toJson())));
+        .write(utf8.encode(jsonEncode(dogUuidData.toJson())));
+  }
+
+  Future<void> _connectBleDevice(BleItem item) async {
+    try {
+      await item.device.connect(autoConnect: false);
+    } on PlatformException catch (e) {
+      if (e.code != 'already_connected') {
+        rethrow;
+      }
+    } finally {
+      _services = await item.device.discoverServices();
+      FlutterBluePlus.stopScan();
+
+      setState(() {
+        item.isTouched = true;
+      });
+
+      await Future.delayed(const Duration(seconds: 3));
+
+      setState(() {
+        _connectedDevice = item.device;
+      });
+
+      getBLECharacteristics();
+      await sendWifiCredentialsByBluetooth();
+      await sendDogUUIDbyBluetooth();
+
+      setState(() {
+        _receivedMessages.clear();
+      });
+
+      _passWifiController.text = "";
+    }
+  }
+
+  void _showDisconnectDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            content: const Text("¿Desea desconectarse del dispositivo?"),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: AppColors.primaryColor),
+                  )),
+              ElevatedButton(
+                onPressed: () async {
+                  // ignore: use_build_context_synchronously
+                  Navigator.of(dialogContext).pop();
+                  await _disconnectBleDevice();
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor),
+                child: const Text(
+                  "Sí",
+                  style: TextStyle(color: Colors.white),
+                ),
+              )
+            ],
+          );
+        });
   }
 }
