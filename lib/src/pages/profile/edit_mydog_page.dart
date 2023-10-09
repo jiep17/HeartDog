@@ -4,7 +4,7 @@ import '../../util/app_colors.dart';
 class EditMyDogPage extends StatefulWidget {
   final String dogId;
 
-  const EditMyDogPage({required this.dogId});
+  const EditMyDogPage({super.key, required this.dogId});
 
   @override
   State<EditMyDogPage> createState() => _EditMyDogPageState();
@@ -15,8 +15,8 @@ class _EditMyDogPageState extends State<EditMyDogPage> {
 
   int _selectedAge = 1;
   String _selectedRace = 'Chihuahua';
-  List<String> _selectedDiseases = [];
-  List<String> _diseases = [
+  final List<String> _selectedDiseases = [];
+  final List<String> _diseases = [
     'Arritmia',
     'Hipertenso',
     'Cancer',
@@ -24,7 +24,7 @@ class _EditMyDogPageState extends State<EditMyDogPage> {
     'Epileptico'
   ];
 
-  List<String> _dogRaces = [
+  final List<String> _dogRaces = [
     'Chihuahua',
     'Pomerania',
     'Yorkshire Terrier',
@@ -61,7 +61,7 @@ class _EditMyDogPageState extends State<EditMyDogPage> {
                     children: [
                       Text(
                         'Editar información de mi mascota - ${widget.dogId}',
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(
@@ -293,10 +293,10 @@ class _EditMyDogPageState extends State<EditMyDogPage> {
                                                   children: [
                                                     Text(
                                                       _selectedAge.toString(),
-                                                      style: TextStyle(
+                                                      style: const TextStyle(
                                                           fontSize: 16),
                                                     ),
-                                                    Text(
+                                                    const Text(
                                                       ' años',
                                                       style: TextStyle(
                                                           fontSize: 16),

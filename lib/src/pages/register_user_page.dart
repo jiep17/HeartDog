@@ -72,6 +72,7 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
 
         if(registeredOwner == 1) {
           print("Se registro");
+          // ignore: use_build_context_synchronously
           Navigator.of(context).pushNamed('/');
         } else {
           print("No se registro");

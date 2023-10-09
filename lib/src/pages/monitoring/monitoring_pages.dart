@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:heartdog/src/pages/home_page.dart';
 import 'package:heartdog/src/pages/monitoring/heart_rate.dart';
-import 'package:heartdog/src/pages/monitoring/respiratory_rate.dart';
 import 'package:heartdog/src/util/app_colors.dart';
 
 class MonitoringPage extends StatefulWidget {
@@ -131,27 +129,27 @@ class _MonitoringPageState extends State<MonitoringPage> {
                     onTap: () {
                        Navigator.of(context).pushNamed('/ecg_graph');
                     },
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Expanded(
                           child: Column(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.query_stats,
                                 color: AppColors.primaryColor,
                               ),
-                              const Text(
+                              Text(
                                 'Electrocardiograma',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(height: 5),
+                              SizedBox(height: 5),
                               Text(
                                 'Normal',
-                                style: const TextStyle(fontSize: 14, color: Colors.green,),
+                                style: TextStyle(fontSize: 14, color: Colors.green,),
                               ),
                             ],
                           ),

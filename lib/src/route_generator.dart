@@ -24,7 +24,7 @@ class RouteGenerator{
           builder: (context) => EditMyDogPage(dogId: dogId),
         );
       case '/register_user': return MaterialPageRoute(builder: (context) => const RegisterUserPage());
-      case '/ecg_graph': return MaterialPageRoute(builder: (context) => ECGGraphPage());
+      case '/ecg_graph': return MaterialPageRoute(builder: (context) => const ECGGraphPage());
       case '/scan_devices': return MaterialPageRoute(builder: (context) =>  ScanDevicesPage(), settings:const RouteSettings(name: '/scan_devices'));
       default: return _errorRoute();
     }

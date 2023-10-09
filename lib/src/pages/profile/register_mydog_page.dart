@@ -24,8 +24,8 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
   String _selectedRace = "";
   String _selectedVet = "";
   String _notes = "";
-  List<String> _selectedDiseases = [];
-  List<String> _diseases = [
+  final List<String> _selectedDiseases = [];
+  final List<String> _diseases = [
     'Arritmia',
     'Hipertenso',
     'Cancer',
@@ -137,17 +137,18 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
     // Crear un objeto Dog con los datos ingresados por el usuario
     Dog dog = Dog(
       id: '', // El servidor asignará un ID
-      owner_id: idOwner, // Debes proporcionar el ID del dueño
+      ownerId: idOwner, // Debes proporcionar el ID del dueño
       name: _nameController.text,
       age: _selectedAge,
       weight: double.parse(_weightController.text),
-      veterinarian_id: _selectedVet, // Obtener el ID del veterinario seleccionado
-      breed_id: _selectedRace, // Obtener el ID de la raza seleccionada
+      veterinarianId: _selectedVet, // Obtener el ID del veterinario seleccionado
+      breedId: _selectedRace, // Obtener el ID de la raza seleccionada
       note: _notes, // Notas obtenidas de la selección de enfermedades
     );
 
     try {
       Dog registeredDog = await DogService().registerADog(dog);
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pushNamed('/controlpages');
       print('Perro registrado con éxito. ID: ${registeredDog.id}');
     } catch (e) {
@@ -177,7 +178,7 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
               child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                   child: ListView(children: [
-                    Text(
+                    const Text(
                       'Crear información de mi mascota',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -397,9 +398,9 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
                                                   Text(
                                                     _selectedAge.toString(),
                                                     style:
-                                                        TextStyle(fontSize: 16),
+                                                        const TextStyle(fontSize: 16),
                                                   ),
-                                                  Text(
+                                                  const Text(
                                                     ' años',
                                                     style:
                                                         TextStyle(fontSize: 16),

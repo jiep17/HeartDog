@@ -1,9 +1,7 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:heartdog/src/models/user.dart';
-import 'package:heartdog/src/services/owner_services.dart';
 import 'package:heartdog/src/services/user_services.dart';
 import 'package:heartdog/src/util/app_colors.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -49,6 +47,7 @@ class _LoginPageState extends State<LoginPage> {
 
         final response = await userService.loginUser(user);
         if (response == 1) {
+          // ignore: use_build_context_synchronously
           Navigator.of(context).pushNamed('/controlpages');
         } else {
           Fluttertoast.showToast(
@@ -96,15 +95,16 @@ class _LoginPageState extends State<LoginPage> {
                         child: Card(
                           elevation: 10,
                           color: Colors.black.withOpacity(0.5),
-                          child: const SizedBox(
+                          child: SizedBox(
                             width: 300,
                             height: 200,
-                            child: Center(
-                              child: Text(
-                                'Logo y BarkBeat',
-                                style: TextStyle(
-                                    fontSize: 30, color: Colors.white),
-                              ),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 20),
+                              decoration: const BoxDecoration(
+                                  image: DecorationImage(
+                                      image: AssetImage(
+                                          'assets/images/barkbeat-login.png'),
+                                      fit: BoxFit.contain)),
                             ),
                           ),
                         ),
@@ -174,13 +174,13 @@ class _LoginPageState extends State<LoginPage> {
               flex: 4,
               child: Container(
                 color: AppColors.backgroundColor,
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           "Supervisa su\nactividad cardiaca",
                           style: TextStyle(
@@ -342,7 +342,7 @@ class _LoginPageState extends State<LoginPage> {
                               color: Colors.grey,
                             ),
                             //counterText: "${_email.length.toString()}/40",
-                            counterStyle: const TextStyle(color: Colors.white),
+                            counterStyle: TextStyle(color: Colors.white),
                             focusColor: Colors.white,
                             hoverColor: Colors.white,
                           ),
@@ -351,7 +351,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

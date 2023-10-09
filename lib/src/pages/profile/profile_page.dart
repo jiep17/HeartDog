@@ -22,7 +22,7 @@ class _ProfilePageState extends State<ProfilePage> {
       DogService(); // Reemplaza con tu propio servicio de perros
   final OwnerService _ownerService = OwnerService();
   String _idOwner = "";
-  var prefs;
+  late SharedPreferences prefs;
 
   Owner _owner =
       Owner(id: '', name: '', lastname: '', email: '', password: '', phone: '');
@@ -104,7 +104,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
 
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
               Card(
                 shape: RoundedRectangleBorder(
@@ -129,11 +129,11 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               _owner.name,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 18),
                             ),
                             Text(_owner.lastname,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 18))
                           ],
                         ),
@@ -142,7 +142,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         onTap: () {
                           Navigator.of(context).pushNamed('/edit_info_page');
                         },
-                        child: Icon(
+                        child: const Icon(
                           Icons.edit,
                           size: 24,
                           color: AppColors.primaryColor,
@@ -287,7 +287,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 const SizedBox(height: 5),
                                 Text(
-                                  'Raza: ${selectedDog!.breed_id}',
+                                  'Raza: ${selectedDog!.breedId}',
                                   style: const TextStyle(fontSize: 16),
                                 ),
                                 const SizedBox(height: 5),
@@ -300,10 +300,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ),
                         )
-                      : SizedBox()
+                      : const SizedBox()
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 30,
               ),
 
@@ -311,7 +311,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 onTap: () {
                   Navigator.of(context).pushNamed('/');
                 },
-                child: Text(
+                child: const Text(
                   'Cerrar sesión',
                   style: TextStyle(
                       color: Colors.red,

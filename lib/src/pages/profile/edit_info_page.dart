@@ -71,10 +71,10 @@ class _EditPersonalInfoPageState extends State<EditPersonalInfoPage> {
                                       onPressed: () {},
                                       style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.primaryColor),
-                                      child: Row(
+                                      child: const Row(
                                           //alignment: WrapAlignment.spaceBetween,
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: const [
+                                          children: [
                                             Icon(Icons.camera_alt_outlined),
                                             Text('Actualizar foto')
                                           ]),

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:heartdog/src/services/ecg_services.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../util/app_colors.dart';
 
 class ECGGraphPage extends StatefulWidget {
+  const ECGGraphPage({super.key});
+
   @override
-  _ECGGraphPageState createState() => _ECGGraphPageState();
+  State<ECGGraphPage> createState() => _ECGGraphPageState();
 }
 
 class _ECGGraphPageState extends State<ECGGraphPage> {
@@ -52,7 +52,7 @@ class _ECGGraphPageState extends State<ECGGraphPage> {
           future: ecgData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (snapshot.hasData) {
@@ -76,7 +76,7 @@ class _ECGGraphPageState extends State<ECGGraphPage> {
                 ),
               );
             } else {
-              return Center(child: Text('No se encontraron datos de ECG.'));
+              return const Center(child: Text('No se encontraron datos de ECG.'));
             }
           },
         ),

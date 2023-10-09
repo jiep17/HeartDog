@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:heartdog/src/providers/bluetooth_adapter_state_observer.dart';
 import 'package:heartdog/src/route_generator.dart';
 
 class MyApp extends StatelessWidget {

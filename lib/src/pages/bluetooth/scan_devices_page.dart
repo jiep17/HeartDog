@@ -7,6 +7,7 @@ import 'package:heartdog/src/models/BLE_item.dart';
 import 'package:heartdog/src/models/ble_notify_data.dart';
 import 'package:heartdog/src/models/ble_write_data.dart';
 import 'package:heartdog/src/util/widget_properties.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
 import '../../util/app_colors.dart';
 
@@ -46,6 +47,10 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
 
   BleItem? _selectedItem;
 
+  late SharedPreferences prefs;
+
+  String _dogId = "";
+
 
   _addDeviceTolist(final BluetoothDevice device, final int rssi) {
     //print(device);
@@ -66,15 +71,17 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     }
   }
 
+  Future<void> _getDogId() async {
+    prefs = await SharedPreferences.getInstance();
+    _dogId = prefs.getString('dogId')!;
+  }
+
   @override
   void initState() {
     super.initState();
 
-    // print(_connectedDevice);
-    // if (_connectedDevice != null) {
-    //   _connectedDevice!.disconnect();
-    //   print('device disconnected');
-    // }
+    _getDogId();
+
     _connectedDevicesSubscription = FlutterBluePlus.connectedSystemDevices
         .asStream()
         .listen((List<BluetoothDevice> devices) {
@@ -570,7 +577,7 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
   Future<void> sendDogUUIDbyBluetooth() async {
     BleWriteData dogUuidData = BleWriteData(
       subject: 'dog-id',
-      uuid: 'dasdsad-dsadsad-dsadsad',
+      uuid: _dogId,
     );
 
     await widget.connectedWriteCharacteristic!

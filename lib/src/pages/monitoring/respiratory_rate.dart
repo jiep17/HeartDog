@@ -25,7 +25,7 @@ class RespiratoryRatePage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Container(
+        child: SizedBox(
           height: 300, // Establece la altura deseada aquí
           child: SfCartesianChart(
             primaryXAxis: CategoryAxis(),

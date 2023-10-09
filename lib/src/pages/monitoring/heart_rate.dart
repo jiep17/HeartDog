@@ -107,10 +107,10 @@ class HeartRatePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16.0),
-                Expanded(
+                const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         'Valores normales',
                         style: TextStyle(
