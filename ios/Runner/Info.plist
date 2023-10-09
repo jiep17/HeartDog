@@ -5,7 +5,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Heartdog</string>
+		<string>BarkBeat</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -48,9 +48,9 @@
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>NSBluetoothAlwaysUsageDescription</key>
-		<string>Need BLE permission</string>
+		<string>Se necesita acceso a Bluetooth para escanear dispositivos y enviar datos a través de BLE.</string>
 		<key>NSBluetoothPeripheralUsageDescription</key>
-		<string>Need BLE permission</string>
+		<string>Se necesita acceso a Bluetooth para escanear dispositivos y enviar datos a través de BLE.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 		<string>Need Location permission</string>
 		<key>NSLocationAlwaysUsageDescription</key>
