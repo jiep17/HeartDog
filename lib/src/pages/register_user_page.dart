@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:heartdog/src/services/owner_services.dart';
 import 'package:heartdog/src/util/app_colors.dart';
 import 'package:heartdog/src/models/owner.dart';
+import 'package:heartdog/src/util/widget_properties.dart';
 
 class RegisterUserPage extends StatefulWidget {
   const RegisterUserPage({super.key});
@@ -22,16 +23,16 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
   bool _obscureText = true;
 
   String? _validateName(String? value) {
-    final RegExp nameExp = RegExp(r'^[a-zA-Z]+$');
+    final RegExp nameExp = RegExp(r'^[a-zA-Z\s]+$');
     if (!nameExp.hasMatch(value!)) {
-      return 'El campo debe contener solo letras';
+      return 'El campo debe contener solo letras y espacios';
     }
     return null;
   }
 
   String? _validateEmail(String? value) {
-    final RegExp emailExp = RegExp(
-        r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    final RegExp emailExp =
+        RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
     if (!emailExp.hasMatch(value!)) {
       return 'El correo electrónico no es válido';
     }
@@ -70,7 +71,7 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
         final ownerService = OwnerService();
         final registeredOwner = await ownerService.registerOwner(newOwner);
 
-        if(registeredOwner == 1) {
+        if (registeredOwner == 1) {
           print("Se registro");
           // ignore: use_build_context_synchronously
           Navigator.of(context).pushNamed('/');
@@ -81,7 +82,7 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
       } catch (e) {
         print(e);
       }
-      
+
       _nameController.clear();
       _lastnameController.clear();
       _emailController.clear();
@@ -106,7 +107,7 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Image.asset(
-                  'assets/images/barbeat_logo.png', 
+                  'assets/images/barbeat_logo.png',
                   height: 100,
                   width: 100,
                   fit: BoxFit.contain,
@@ -114,53 +115,47 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre',
-                  ),
+                  decoration: WidgetCustomProperties.customInputDecoration(
+                      hintText: "Nombres"),
                   validator: _validateName,
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _lastnameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Apellido',
-                  ),
+                  decoration: WidgetCustomProperties.customInputDecoration(
+                      hintText: "Apellidos"),
                   validator: _validateName,
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
+                  keyboardType: TextInputType.emailAddress,
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Correo Electrónico',
-                  ),
+                  decoration: WidgetCustomProperties.customInputDecoration(
+                      hintText: "Correo electrónico"),
                   validator: _validateEmail,
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Contraseña',
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureText
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureText = !_obscureText;
-                        });
-                      },
+                  decoration:
+                      WidgetCustomProperties.customPasswordInputDecoration(
+                          gestureDetector: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _obscureText = !_obscureText;
+                      });
+                    },
+                    child: Icon(
+                      _obscureText ? Icons.visibility : Icons.visibility_off,
                     ),
-                  ),
+                  )),
                   obscureText: _obscureText,
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Teléfono',
-                  ),
+                  decoration: WidgetCustomProperties.customInputDecoration(
+                      hintText: "Teléfono"),
                   validator: _validatePhone,
                   keyboardType: TextInputType.phone,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
