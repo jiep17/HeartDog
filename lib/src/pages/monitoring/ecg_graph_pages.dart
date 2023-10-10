@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:heartdog/src/services/ecg_services.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -15,19 +17,33 @@ class ECGGraphPage extends StatefulWidget {
 class _ECGGraphPageState extends State<ECGGraphPage> {
   late Future<String> dogId;
   late Future<List<Map<String, dynamic>>> ecgData;
-
+  late Timer _timer;
+  
   @override
   void initState() {
     super.initState();
     ecgData = fetchECGData();
+
+    _timer = Timer.periodic(Duration(seconds: 6), (Timer timer) {
+      setState(() {
+        ecgData = fetchECGData();
+      });
+    });
   }
+
+  @override
+  void dispose() {
+    // Detener el Timer cuando se desmonta el widget
+    _timer.cancel();
+    super.dispose();
+  }
+
 
   Future<List<Map<String, dynamic>>> fetchECGData() async {
     final ecgService = ECGService();
 
     final prefs = await SharedPreferences.getInstance();
     final dogId = prefs.getString('dogId')!;
-    // final dogId = "0b1f6d8e-886f-49c1-8b4c-19605338ec6e";
     final now = DateTime.now();
     final timestampEnd = now.millisecondsSinceEpoch;
     final timestampStart = now.subtract(const Duration(seconds: 4)).millisecondsSinceEpoch;
@@ -71,6 +87,7 @@ class _ECGGraphPageState extends State<ECGGraphPage> {
                           ecgData['timestamp'].toDouble(), // Mantén los valores en milisegundos
                       yValueMapper: (Map<String, dynamic> ecgData, _) =>
                           ecgData['value'].toDouble(), // Convierte el valor a double
+                      color: AppColors.secondaryColor,
                     ),
                   ],
                 ),
