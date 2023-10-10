@@ -101,6 +101,7 @@ class _ECGGraphPageState extends State<ECGGraphPage> {
     dogId = prefs.getString('dogId')!;
   }
 
+
   Future<List<Map<String, dynamic>>> fetchECGData() async {
     // final dogId = "0b1f6d8e-886f-49c1-8b4c-19605338ec6e";
     await _loadPrefs();
