@@ -1,7 +1,7 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:heartdog/src/pages/home_page.dart';
+//import 'package:heartdog/src/pages/home_page.dart';
 import 'package:heartdog/src/pages/monitoring/monitoring_pages.dart';
 import 'package:heartdog/src/pages/profile/profile_page.dart';
 

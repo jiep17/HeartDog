@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -79,6 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       setState(() {
         selectedDog = _myDogs[0];
+        prefs.setString('dogId', selectedDog!.id);
         _isLoadingDogs = false;
       });
     }
