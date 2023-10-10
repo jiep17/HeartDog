@@ -269,9 +269,10 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
                                       height: 58,
                                       child: DropdownButtonHideUnderline(
                                         child: DropdownButton<Breed>(
-                                          value: _breeds.isNotEmpty
-                                              ? _breeds[0]
-                                              : null,
+                                        value: _breeds.isNotEmpty 
+                                            ? _selectedRace.isNotEmpty? _breeds.firstWhere((breed) => breed.id == _selectedRace, orElse: () => _breeds[0])
+                                                : _breeds[0]
+                                            : null,
                                           items: _breeds.map((Breed breed) {
                                             return DropdownMenuItem<Breed>(
                                               value: breed,
@@ -494,7 +495,10 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
                                       height: 58,
                                       child: DropdownButtonHideUnderline(
                                         child: DropdownButton<Vet>(
-                                          value: _vets.isNotEmpty ? _vets[0] : null,
+                                         value: _vets.isNotEmpty 
+                                            ? _selectedVet.isNotEmpty? _vets.firstWhere((vet) => vet.id == _selectedVet, orElse: () => _vets[0])
+                                                : _vets[0]
+                                            : null,
                                           items: _vets.map((Vet vet) {
                                             return DropdownMenuItem<Vet>(
                                               value: vet,
@@ -503,7 +507,8 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
                                           }).toList(),
                                           onChanged: (value) {
                                             setState(() {
-                                              _selectedVet = value!.id;
+                                              _selectedVet = value!.id ?? 
+                                               '';
                                             });
                                           },
                                           isExpanded: true,

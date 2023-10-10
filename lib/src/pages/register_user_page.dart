@@ -267,8 +267,7 @@ void _showTermsAndConditionsDialog() {
                         });
                       },
                     ),
-                    Text('Acepto los Términos y Condiciones'),
-                    SizedBox(width: 8),
+                    Text('Acepto los'),
                     TextButton(
                       onPressed: _showTermsAndConditionsDialog,
                       child: Text('Términos y Condiciones'),
