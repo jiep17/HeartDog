@@ -15,6 +15,7 @@ import '../../util/app_colors.dart';
 class ScanDevicesPage extends StatefulWidget {
   ScanDevicesPage({Key? key}) : super(key: key);
   final List<BleItem> devicesList = <BleItem>[];
+  final List<BleItem> connectedDeviceList = <BleItem>[];
   //final Map<Guid, List<int>> readValues = <Guid, List<int>>{};
 
   // OWN
@@ -39,20 +40,16 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
   List<BluetoothService> _services = [];
 
   // bool isConnected = false;
-  bool isNotifiy = false;
   final targetDeviceName = "IoT Barkbeat Device";
 
   // ignore: prefer_final_fields
   List<BleNotifyData> _receivedMessages = [];
 
-  BleItem? _selectedItem;
-
   late SharedPreferences prefs;
 
   String _dogId = "";
 
-
-  _addDeviceTolist(final BluetoothDevice device, final int rssi) {
+  _addDeviceTolist(BluetoothDevice device, int rssi, DateTime timeStamp) {
     //print(device);
     bool existItem = false;
     for (BleItem item in widget.devicesList) {
@@ -60,13 +57,39 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
         existItem = true;
         setState(() {
           item.rssi = rssi;
+          item.timeStamp = timeStamp;
         });
+      }
+
+      if (DateTime.now().difference(item.timeStamp) >
+          const Duration(seconds: 2)) {
+        setState(() {
+          widget.devicesList.remove(item);
+        });
+        return;
       }
     }
 
     if (!existItem) {
       setState(() {
-        widget.devicesList.add(BleItem(device: device, rssi: rssi));
+        widget.devicesList
+            .add(BleItem(device: device, rssi: rssi, timeStamp: timeStamp));
+      });
+    }
+  }
+
+  _addConnectedDeviceToList(BluetoothDevice device) {
+    bool existItem = false;
+    for (BleItem item in widget.connectedDeviceList) {
+      if (item.device.remoteId == device.remoteId) {
+        existItem = true;
+      }
+    }
+
+    if (!existItem) {
+      setState(() {
+        widget.connectedDeviceList
+            .add(BleItem(device: device, rssi: 0, timeStamp: DateTime(0)));
       });
     }
   }
@@ -86,26 +109,22 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
         .asStream()
         .listen((List<BluetoothDevice> devices) {
       for (BluetoothDevice device in devices) {
-        _addDeviceTolist(device, 0);
+        _addConnectedDeviceToList(device);
       }
     });
+
     _scanResultsSubscription =
         FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
-      //_cleanDeviceList();
-
       for (ScanResult result in results) {
-        //print(results);
-
         if (result.device.localName == targetDeviceName) {
-          //print(result.rssi);
-          _addDeviceTolist(result.device, result.rssi);
+          _addDeviceTolist(result.device, result.rssi, result.timeStamp);
         }
       }
     });
 
     //widget.connectedCharacteristic = FlutterBluePlus.
 
-    FlutterBluePlus.startScan(removeIfGone: const Duration(seconds: 5));
+    FlutterBluePlus.startScan(removeIfGone: const Duration(seconds: 2));
   }
 
   @override
@@ -113,6 +132,8 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     // Realiza tareas de limpieza o liberación de recursos aquí
     _connectedDevicesSubscription?.cancel();
     _scanResultsSubscription?.cancel();
+    _notifySubscription?.cancel();
+
     FlutterBluePlus.stopScan();
     super.dispose(); // No olvides llamar a la implementación de la superclase
     //print("Se detuvo el scanero y se cerro la pagina");
@@ -123,33 +144,134 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     List<Widget> foundDevices = <Widget>[];
     for (BleItem item in widget.devicesList) {
       /// FOUNDED DEVICE CARD
-      foundDevices.add(GestureDetector(
+      if (item.device != _connectedDevice) {
+        var cardDevice = GestureDetector(
+          onTap: () async {
+            if (_connectedDevice == null &&
+                widget.connectedDeviceList.isEmpty) {
+              _showWiFiFormDialog(context, item);
+            } else {
+              _showInformationDialog(context);
+            }
+          },
+          onTapDown: (_) {
+            setState(() {
+              item.isHovered = true;
+            });
+          },
+          onTapUp: (_) {
+            setState(() {
+              item.isHovered = false;
+            });
+          },
+          onTapCancel: () {
+            setState(() {
+              item.isHovered = false;
+            });
+          },
+          child: Card(
+            elevation: item.isHovered ? 5 : 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      SignalStrengthIndicator.bars(
+                        value: 100 + item.rssi,
+                        maxValue: 100,
+                        minValue: 0,
+                        size: 30,
+                        activeColor: AppColors.blueColor,
+                        barCount: 5,
+                        radius: const Radius.circular(20),
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        (item.rssi) == 0 ? "Ok" : item.rssi.toString(),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w100, fontSize: 12),
+                      )
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.device.localName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 20),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.62,
+                        child: Text(
+                          "UUID: ${item.device.remoteId.toString()}",
+                          style: const TextStyle(
+                              overflow: TextOverflow.ellipsis,
+                              fontWeight: FontWeight.w100,
+                              fontSize: 14),
+                        ),
+                      ),
+                      if (item.isTouched)
+                        const Row(
+                          children: [
+                            Text('Conectando...'),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            SizedBox(
+                              height: 10,
+                              width: 10,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          ],
+                        )
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+
+        foundDevices.add(cardDevice);
+      }
+    }
+
+    return Column(children: [
+      const SizedBox(height: 10),
+      Expanded(
+        child: ListView(
+          //padding: const EdgeInsets.all(8),
+          children: <Widget>[
+            ...foundDevices,
+          ],
+        ),
+      )
+    ]);
+  }
+
+  _buildListViewOfConnectedDevices() {
+    List<Widget> foundDevices = <Widget>[];
+    for (BleItem item in widget.connectedDeviceList) {
+      /// FOUNDED DEVICE CARD
+
+      var cardDevice = GestureDetector(
         onDoubleTap: () {
-          if (_connectedDevice != null) {
-            _showDisconnectDialog(context);
-            _receivedMessages.clear();
-          }
-        },
-        onTap: () async {
-          if (_connectedDevice == null) {
-            _selectedItem = item;
-            _showWiFiFormDialog(context, item);
-          }
-        },
-        onTapDown: (_) {
-          setState(() {
-            item.isHovered = true;
-          });
-        },
-        onTapUp: (_) {
-          setState(() {
-            item.isHovered = false;
-          });
-        },
-        onTapCancel: () {
-          setState(() {
-            item.isHovered = false;
-          });
+          _showDisconnectDialog(context, item);
+          _receivedMessages.clear();
         },
         child: Card(
           elevation: item.isHovered ? 5 : 1,
@@ -176,7 +298,7 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
                       height: 5,
                     ),
                     Text(
-                      item.rssi.toString(),
+                      (item.rssi) == 0 ? "Ok" : item.rssi.toString(),
                       style: const TextStyle(
                           fontWeight: FontWeight.w100, fontSize: 12),
                     )
@@ -185,122 +307,103 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
                 const SizedBox(
                   width: 20,
                 ),
-                (item.isTouched)
-                    ? Column(
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(
+                    item.device.localName,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 20),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.62,
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            item.device.localName,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 20),
+                          const Text('Conexión exitosa'),
+                          const SizedBox(
+                            height: 5,
                           ),
-                          (_connectedDevice == null)
-                              ? const Row(
-                                  children: [
-                                    Text('Conectando...'),
-                                    SizedBox(
-                                      width: 5,
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                      width: 10,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('Conexión exitosa'),
-                                    const SizedBox(
-                                      height: 5,
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Text('Comprobación de estado:'),
+
+                          if (_connectedDevice != null)
+                            Row(
+                              children: [
+                                const Text('Comprobación de estado:'),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                SizedBox(
+                                  width: 50,
+                                  child: Row(
+                                    children: [
+                                      if (_receivedMessages.length != 3)
                                         const SizedBox(
-                                          width: 10,
+                                          height: 7,
+                                          width: 7,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      const SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text("${_receivedMessages.length}"),
+                                      const Text("/3"),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+
+                          if (_connectedDevice != null)
+                            const SizedBox(
+                              height: 5,
+                            ),
+
+                          if (_connectedDevice != null)
+                            SizedBox(
+                              height: 125,
+                              width: 225,
+                              child: ListView.builder(
+                                  itemCount: _receivedMessages.length,
+                                  itemBuilder: (context, index) {
+                                    return Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        _receivedMessages[index].success
+                                            ? const Icon(
+                                                Icons.check_circle,
+                                                color: Colors.green,
+                                              )
+                                            : const Icon(
+                                                Icons.cancel,
+                                                color: Colors.red,
+                                              ),
+                                        const SizedBox(
+                                          width: 5,
                                         ),
                                         SizedBox(
-                                          width: 50,
-                                          child: Row(
-                                            children: [
-                                              if (_receivedMessages.length != 3)
-                                                const SizedBox(
-                                                  height: 7,
-                                                  width: 7,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                  ),
-                                                ),
-                                              const SizedBox(
-                                                width: 10,
-                                              ),
-                                              Text(
-                                                  "${_receivedMessages.length}"),
-                                              const Text("/3"),
-                                            ],
-                                          ),
-                                        )
+                                            width: 190,
+                                            child: Text(
+                                                _receivedMessages[index].msg,
+                                                textAlign: TextAlign.justify)),
+                                        const SizedBox(height: 5)
                                       ],
-                                    ),
-
-                                    const SizedBox(
-                                      height: 5,
-                                    ),
-                                    SizedBox(
-                                      height: 125,
-                                      width: 225,
-                                      child: ListView.builder(
-                                          itemCount: _receivedMessages.length,
-                                          itemBuilder: (context, index) {
-                                            return Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                _receivedMessages[index].success
-                                                    ? const Icon(
-                                                        Icons.check_circle,
-                                                        color: Colors.green,
-                                                      )
-                                                    : const Icon(
-                                                        Icons.cancel,
-                                                        color: Colors.red,
-                                                      ),
-                                                const SizedBox(
-                                                  width: 5,
-                                                ),
-                                                SizedBox(
-                                                    width: 190,
-                                                    child: Text(
-                                                        _receivedMessages[index]
-                                                            .msg,
-                                                        textAlign:
-                                                            TextAlign.justify)),
-                                                const SizedBox(height: 5)
-                                              ],
-                                            );
-                                          }),
-                                    )
-                                    //for(int i = 0; i < 3; i++)
-                                    //Text(receivedMessages[i].msg)
-                                  ],
-                                )
+                                    );
+                                  }),
+                            )
+                          //for(int i = 0; i < 3; i++)
+                          //Text(receivedMessages[i].msg)
                         ],
-                      )
-                    : Text(
-                        item.device.localName,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 20),
-                      ),
+                      ))
+                ])
               ],
             ),
           ),
         ),
-      ));
+      );
+
+      foundDevices.add(cardDevice);
     }
 
     return Column(children: [
@@ -314,15 +417,6 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
         ),
       )
     ]);
-  }
-
-  //ListView _buildView() {
-  _buildView() {
-    return _buildListViewOfDevices();
-    /*if (_connectedDevice != null) {
-      return _buildConnectDeviceView();
-    }
-    return _buildListViewOfDevices();*/
   }
 
   @override
@@ -340,43 +434,84 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
           ),
         ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            child: Container(
-              color: AppColors.backgroundSecondColor,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Selecciona un dispositivo',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    const SizedBox(height: 10),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
+          child: Container(
+            color: AppColors.backgroundSecondColor,
+            child: Column(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Colors.grey,
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Selecciona un dispositivo',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        const SizedBox(height: 10),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              'Toque uno para conectarse',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
                         ),
                         SizedBox(
-                          width: 5,
-                        ),
-                        Text(
-                          'Toque uno para conectarse',
-                          style: TextStyle(color: Colors.grey),
-                        ),
+                            height: MediaQuery.of(context).size.height * 0.30,
+                            child: _buildListViewOfDevices()),
                       ],
                     ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.72,
-                        child: _buildView()),
-                  ],
+                  ),
                 ),
-              ),
+                if (widget.connectedDeviceList.isNotEmpty)
+                  SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Dispositivo conectado',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                          const SizedBox(height: 10),
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(
+                                width: 5,
+                              ),
+                              Text(
+                                'Toque dos veces para desconectarse',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.30,
+                              child: _buildListViewOfConnectedDevices()),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ));
@@ -551,18 +686,18 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
 
       if (countFails == 3) {
         Future.delayed(const Duration(seconds: 3));
-        _disconnectBleDevice();
+        _disconnectBleDevice(null);
       }
     }
   }
 
-  _disconnectBleDevice() {
+  _disconnectBleDevice(BleItem? item) {
     //Eliminamos los servicios
     _services = [];
 
     //Desconectamos el actual dispostivo si existe
-    _selectedItem?.device.disconnect(timeout: 3);
-    _selectedItem?.isTouched = false;
+    item?.device.disconnect(timeout: 3);
+    _connectedDevice?.disconnect(timeout: 3);
     _connectedDevice = null;
 
     //Cancelamos la suscripcion del characteristics
@@ -586,6 +721,7 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
 
   Future<void> _connectBleDevice(BleItem item) async {
     try {
+      //_disconnectBleDevice(null);
       await item.device.connect(autoConnect: false);
     } on PlatformException catch (e) {
       if (e.code != 'already_connected') {
@@ -604,7 +740,7 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
       setState(() {
         _connectedDevice = item.device;
       });
-
+      widget.connectedDeviceList.add(item);
       getBLECharacteristics();
       await sendWifiCredentialsByBluetooth();
       await sendDogUUIDbyBluetooth();
@@ -617,7 +753,31 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
     }
   }
 
-  void _showDisconnectDialog(BuildContext context) {
+  void _showInformationDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            content:
+                const Text("Solo puedes conectarte a un dispositivo a la vez"),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor),
+                child: const Text(
+                  "Aceptar",
+                  style: TextStyle(color: Colors.white),
+                ),
+              )
+            ],
+          );
+        });
+  }
+
+  void _showDisconnectDialog(BuildContext context, BleItem item) {
     showDialog(
         context: context,
         builder: (BuildContext dialogContext) {
@@ -636,7 +796,10 @@ class ScanDevicesPageState extends State<ScanDevicesPage> {
                 onPressed: () async {
                   // ignore: use_build_context_synchronously
                   Navigator.of(dialogContext).pop();
-                  await _disconnectBleDevice();
+                  await _disconnectBleDevice(item);
+                  setState(() {
+                    widget.connectedDeviceList.remove(item);
+                  });
                 },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor),

@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:heartdog/src/models/owner.dart';
+import 'package:heartdog/src/services/breed_services.dart';
 import 'package:heartdog/src/services/dog_services.dart';
 import 'package:heartdog/src/services/owner_services.dart';
 import 'package:heartdog/src/util/app_colors.dart';
 import 'package:heartdog/src/widgets/add_user_button.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/dog.dart';
@@ -21,6 +26,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final DogService _dogService =
       DogService(); // Reemplaza con tu propio servicio de perros
   final OwnerService _ownerService = OwnerService();
+  final BreedService _breedService = BreedService();
   String _idOwner = "";
   late SharedPreferences prefs;
 
@@ -64,10 +70,18 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadDogs() async {
     _myDogs = await _dogService.getDogsByOwnerId(_idOwner);
-    setState(() {
-      selectedDog = _myDogs[0];
-      _isLoadingDogs = false;
-    });
+
+    if (_myDogs.isNotEmpty) {
+      for (var dog in _myDogs) {
+        final breed = await _breedService.getBreedById(dog.breedId);
+        dog.breedName = breed.name;
+      }
+
+      setState(() {
+        selectedDog = _myDogs[0];
+        _isLoadingDogs = false;
+      });
+    }
   }
 
   @override
@@ -89,16 +103,32 @@ class _ProfilePageState extends State<ProfilePage> {
                         fontWeight: FontWeight.w500,
                         fontSize: 16,
                         letterSpacing: 1.0)),
-                onPressed: () {
+                onPressed: () async {
+                  PermissionStatus permissionStatus =
+                      await Permission.bluetoothConnect.request();
+                  if (permissionStatus == PermissionStatus.granted) {
+                    FlutterBluePlus.turnOn();
+                  }
+                  // ignore: use_build_context_synchronously
                   Navigator.of(context).pushNamed('/scan_devices');
                 },
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    FaIcon(FontAwesomeIcons.boxArchive,size: 20,),
-                    SizedBox(width: 5,),
-                    FaIcon(FontAwesomeIcons.bluetoothB,size: 20,),
-                    SizedBox(width: 15,),
+                    FaIcon(
+                      FontAwesomeIcons.boxArchive,
+                      size: 20,
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    FaIcon(
+                      FontAwesomeIcons.bluetoothB,
+                      size: 20,
+                    ),
+                    SizedBox(
+                      width: 15,
+                    ),
                     Text('Conectar wearable'),
                   ],
                 ),
@@ -287,7 +317,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 const SizedBox(height: 5),
                                 Text(
-                                  'Raza: ${selectedDog!.breedId}',
+                                  'Raza: ${selectedDog!.breedName}',
                                   style: const TextStyle(fontSize: 16),
                                 ),
                                 const SizedBox(height: 5),

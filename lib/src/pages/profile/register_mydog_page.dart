@@ -85,7 +85,7 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
     try {
       List<Breed> breeds = await BreedService().getBreeds();
       setState(() {
-        _breeds = breeds;
+         _breeds = breeds;
       });
 
       if (_breeds.isEmpty) {

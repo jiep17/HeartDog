@@ -11,9 +11,20 @@ class BreedService {
 
     if (response.statusCode == 200) {
       final List<dynamic> breedData = json.decode(response.body);
-      List<Breed> breeds = breedData.map((data) => Breed.fromJson(data)).toList();
+      List<Breed> breeds = breedData.map((data) => Breed.fromJsonList(data)).toList();
       return breeds;
     } else {
+      throw Exception('Failed to load breeds');
+    }
+  }
+
+  Future<Breed> getBreedById(String breedId) async {
+    final response = await http.get(Uri.parse("$apiUrl/$breedId"));
+    if (response.statusCode == 200){
+      final Map<String, dynamic> breedMap = jsonDecode(response.body);
+      Breed data = Breed.fromJson(breedMap);
+      return data;
+    }else{
       throw Exception('Failed to load breeds');
     }
   }

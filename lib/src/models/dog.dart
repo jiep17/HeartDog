@@ -6,6 +6,7 @@ class Dog {
   final double weight;
   final String veterinarianId;
   final String breedId;
+  String breedName ="";
   final String note;
 
   Dog({

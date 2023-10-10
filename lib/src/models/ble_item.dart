@@ -5,9 +5,11 @@ class BleItem {
   int rssi;
   bool isHovered = false;
   bool isTouched = false;
+  DateTime timeStamp;
 
   BleItem({
     required this.device,
-    required this.rssi
+    required this.rssi,
+    required this.timeStamp
   });
 }

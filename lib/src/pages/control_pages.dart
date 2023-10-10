@@ -17,7 +17,7 @@ class _ControlPagesState extends State<ControlPages> {
   int _indexPage = 0;
 
   final List<Widget> _pages = [
-    const HomePage(),
+    //const HomePage(),
     const MonitoringPage(),
     const ProfilePage(),
   ];
@@ -44,11 +44,7 @@ class _ControlPagesState extends State<ControlPages> {
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-            tooltip: "Mira estadisticas"
-          ),
+          
           BottomNavigationBarItem(
             icon: Icon(Icons.visibility),
             label: 'Monitoreo',
