@@ -27,7 +27,7 @@ class Dog {
       name: json['name'] as String,
       age: json['age'] as int,
       weight: (json['weight'] as num).toDouble(),
-      veterinarianId: json['veterinarian_id'] as String,
+      veterinarianId: json['veterinarian_id'] as String? ?? '',
       breedId: json['breed_id'] as String,
       note: json['note'] as String? ?? ''
     );
@@ -35,16 +35,21 @@ class Dog {
 
 
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'owner_id': ownerId,
-      'name': name,
-      'age': age,
-      'weight': weight,
-      'veterinarian_id': veterinarianId,
-      'breed_id': breedId,
-      'note': note
-    };
+Map<String, dynamic> toJson() {
+  Map<String, dynamic> json = {
+    'id': id,
+    'owner_id': ownerId,
+    'name': name,
+    'age': age,
+    'weight': weight,
+    'breed_id': breedId,
+    'note': note
+  };
+
+  if (veterinarianId.isNotEmpty) {
+    json['veterinarian_id'] = veterinarianId;
   }
+
+  return json;
+}
 }

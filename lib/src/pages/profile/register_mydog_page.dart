@@ -20,6 +20,9 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
 
+
+
+  Vet _auxVet = Vet(id: '', name: '', lastname: '', phone: '', clinicName: '', disponibilityStart: '', disponibilityEnd: '');
   int _selectedAge = 6;
   String _selectedRace = "";
   String _selectedVet = "";
@@ -109,15 +112,6 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
         _vets = vets;
       });
 
-      if (_vets.isEmpty) {
-        setState(() {
-          _selectedVet = '';
-        });
-      } else {
-        setState(() {
-          _selectedVet = _vets[0].id;
-        });
-      }
     } catch (e) {
       // Manejar error de obtención de veterinarios
       print('Error al obtener los veterinarios: $e');
@@ -496,15 +490,21 @@ class _RegisterMyDogPageState extends State<RegisterMyDogPage> {
                                       child: DropdownButtonHideUnderline(
                                         child: DropdownButton<Vet>(
                                          value: _vets.isNotEmpty 
-                                            ? _selectedVet.isNotEmpty? _vets.firstWhere((vet) => vet.id == _selectedVet, orElse: () => _vets[0])
-                                                : _vets[0]
+                                            ? _selectedVet.isNotEmpty? _vets.firstWhere((vet) => vet.id == _selectedVet, orElse: () => _auxVet)
+                                                :_auxVet
                                             : null,
-                                          items: _vets.map((Vet vet) {
+                                          items:
+                                          [  DropdownMenuItem<Vet>(
+                                                  value: _auxVet, 
+                                                  child: Text("Sin veterinario"),
+                                            ),
+                                            ..._vets.map((Vet vet) {
                                             return DropdownMenuItem<Vet>(
                                               value: vet,
                                               child: Text(vet.name),
                                             );
-                                          }).toList(),
+                                          }).toList()
+                                          ],
                                           onChanged: (value) {
                                             setState(() {
                                               _selectedVet = value!.id ?? 
