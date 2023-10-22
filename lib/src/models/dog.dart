@@ -52,4 +52,19 @@ Map<String, dynamic> toJson() {
 
   return json;
 }
+
+Map<String, dynamic> toJsonUpdate() {
+  Map<String, dynamic> json = {
+    'name': name,
+    'age': age,
+    'weight': weight,
+    'breed_id': breedId,
+    'note': note
+  };
+  if (veterinarianId.isNotEmpty) {
+    json['veterinarian_id'] = veterinarianId;
+  }
+  return json;
+}
+
 }
