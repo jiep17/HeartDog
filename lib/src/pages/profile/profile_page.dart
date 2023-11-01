@@ -80,6 +80,8 @@ class _ProfilePageState extends State<ProfilePage> {
         prefs.setString('dogId', selectedDog!.id);
         _isLoadingDogs = false;
       });
+    } else {
+      _isLoadingDogs = false;
     }
   }
 
