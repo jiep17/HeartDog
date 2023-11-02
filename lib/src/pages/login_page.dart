@@ -5,6 +5,7 @@ import 'package:heartdog/src/models/user.dart';
 import 'package:heartdog/src/services/user_services.dart';
 import 'package:heartdog/src/util/app_colors.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,6 +21,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isTapped = false;
   bool _obscureText = false;
+  bool _isLoadingLogin = false;
 
   String? _validateEmail(String? value) {
     final RegExp emailExp =
@@ -45,11 +47,24 @@ class _LoginPageState extends State<LoginPage> {
           password: password,
         );
 
+        setState(() {
+          _isLoadingLogin = true;
+        });
+
         final response = await userService.loginUser(user);
         if (response == 1) {
+          await Future.delayed(const Duration(seconds: 1));
+
+          setState(() {
+            _isLoadingLogin = false;
+          });
           // ignore: use_build_context_synchronously
           Navigator.of(context).pushNamed('/controlpages');
         } else {
+          setState(() {
+            _isLoadingLogin = false;
+          });
+
           Fluttertoast.showToast(
               msg: "Usuario o contraseña incorrecta",
               toastLength: Toast.LENGTH_SHORT,
@@ -60,6 +75,10 @@ class _LoginPageState extends State<LoginPage> {
               fontSize: 16.0);
         }
       } catch (e) {
+        setState(() {
+          _isLoadingLogin = false;
+        });
+
         Fluttertoast.showToast(
             msg: "Usuario o contraseña incorrecta",
             toastLength: Toast.LENGTH_SHORT,
@@ -74,93 +93,114 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        color: AppColors.backgroundColor,
-        child: Column(children: [
-          Expanded(
-              flex: _isTapped ? 4 : 5,
-              child: Stack(
-                //fit: StackFit.expand,
-                children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                        image: DecorationImage(
-                            image: AssetImage('assets/images/old-dog.png'),
-                            fit: BoxFit.cover)),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
-                      child: Center(
-                        child: Card(
-                          elevation: 10,
-                          color: Colors.black.withOpacity(0.5),
-                          child: SizedBox(
-                            width: 300,
-                            height: 200,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 20),
-                              decoration: const BoxDecoration(
-                                  image: DecorationImage(
-                                      image: AssetImage(
-                                          'assets/images/barkbeat-login.png'),
-                                      fit: BoxFit.contain)),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Scaffold(
+            backgroundColor: Colors.white,
+            body: Container(
+              color: AppColors.backgroundColor,
+              child: Column(children: [
+                Expanded(
+                    flex: _isTapped ? 4 : 5,
+                    child: Stack(
+                      //fit: StackFit.expand,
+                      children: [
+                        Container(
+                          decoration: const BoxDecoration(
+                              image: DecorationImage(
+                                  image:
+                                      AssetImage('assets/images/old-dog.png'),
+                                  fit: BoxFit.cover)),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+                            child: Center(
+                              child: Card(
+                                elevation: 10,
+                                color: Colors.black.withOpacity(0.5),
+                                child: SizedBox(
+                                  width: 300,
+                                  height: 200,
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 20),
+                                    decoration: const BoxDecoration(
+                                        image: DecorationImage(
+                                            image: AssetImage(
+                                                'assets/images/barkbeat-login.png'),
+                                            fit: BoxFit.contain)),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        //Container(
+                        //color: Color.fromRGBO(0, 0, 0, 0.5),
+                        //),
+                      ],
+                    )),
+                Expanded(
+                  flex: 5,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                    width: MediaQuery.of(context).size.width * 2,
+                    child: Stack(
+                      children: [
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                          left:
+                              _isTapped ? 0 : MediaQuery.of(context).size.width,
+                          child: SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height:
+                                  MediaQuery.of(context).size.height / 10 * 5,
+                              child: _loginInputsWidget()),
+                        ),
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                          left: _isTapped
+                              ? -MediaQuery.of(context).size.width
+                              : 0,
+                          child: SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height / 10 * 5,
+                              width: MediaQuery.of(context).size.width,
+                              //width: MediaQuery.of(context).size.width,
+                              child: _presentationWidget()),
+                        ),
+                      ],
                     ),
                   ),
-                  //Container(
-                  //color: Color.fromRGBO(0, 0, 0, 0.5),
-                  //),
-                ],
-              )),
-          Expanded(
-            flex: 5,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              width: MediaQuery.of(context).size.width * 2,
-              child: Stack(
-                children: [
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    left: _isTapped ? 0 : MediaQuery.of(context).size.width,
-                    child: SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height / 10 * 5,
-                        child: _loginInputsWidget()),
-                  ),
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    left: _isTapped ? -MediaQuery.of(context).size.width : 0,
-                    child: SizedBox(
-                        height: MediaQuery.of(context).size.height / 10 * 5,
-                        width: MediaQuery.of(context).size.width,
-                        //width: MediaQuery.of(context).size.width,
-                        child: _presentationWidget()),
-                  ),
-                ],
-              ),
-            ),
-            /*child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: child,
-                    );
-                  },
-                  child: _isTapped
-                      ? _loginInputsWidget()
-                      : _presentationWidget())*/
+                  /*child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        );
+                      },
+                      child: _isTapped
+                          ? _loginInputsWidget()
+                          : _presentationWidget())*/
+                ),
+              ]),
+            )),
+        if (_isLoadingLogin)
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: Colors.black.withOpacity(0.2),
           ),
-        ]),
-      ),
+        if (_isLoadingLogin)
+          Center(
+              child: LoadingAnimationWidget.fallingDot(
+                  color: Colors.white, size: 100)),
+      ],
     );
   }
 
@@ -412,7 +452,7 @@ class _LoginPageState extends State<LoginPage> {
                           // The validator receives the text that the user has entered.
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter some text';
+                              return 'Ingrese la contraseña';
                             }
                             return null;
                           },
@@ -420,7 +460,7 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     const SizedBox(
-                      height: 35,
+                      height: 20,
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -439,7 +479,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: const Text('Iniciar sesión'),
                     ),
                     const SizedBox(
-                      height: 30,
+                      height: 25,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

@@ -340,7 +340,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).pushNamed('/');
+                  Navigator.of(context).popUntil((route) => route.isFirst);
                 },
                 child: const Text(
                   'Cerrar sesión',
