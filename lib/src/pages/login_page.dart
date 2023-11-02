@@ -58,6 +58,9 @@ class _LoginPageState extends State<LoginPage> {
           setState(() {
             _isLoadingLogin = false;
           });
+          _emailController.text = '';
+          _passwordController.text = '';
+
           // ignore: use_build_context_synchronously
           Navigator.of(context).pushNamed('/controlpages');
         } else {

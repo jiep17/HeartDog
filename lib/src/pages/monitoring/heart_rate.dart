@@ -209,17 +209,17 @@ class _HeartRatePageState extends State<HeartRatePage> {
                           color: AppColors.textColor,
                         ),
                       ),
-                      SizedBox(height: 8.0),
+                      /*SizedBox(height: 8.0),
                       Text(
                         'Promedio: 70-90 ppm',
                         style: TextStyle(
                           fontSize: 16,
                           color: AppColors.textColor,
                         ),
-                      ),
+                      ),*/
                       SizedBox(height: 8.0),
                       Text(
-                        'Mínimo: 60 ppm',
+                        'Mínimo: 100 ppm',
                         style: TextStyle(
                           fontSize: 16,
                           color: AppColors.textColor,
@@ -227,7 +227,7 @@ class _HeartRatePageState extends State<HeartRatePage> {
                       ),
                       SizedBox(height: 8.0),
                       Text(
-                        'Máximo: 120 ppm',
+                        'Máximo: 180 ppm',
                         style: TextStyle(
                           fontSize: 16,
                           color: AppColors.textColor,

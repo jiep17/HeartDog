@@ -349,7 +349,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       fontSize: 18,
                       decoration: TextDecoration.underline),
                 ),
-              )
+              ) 
             ]),
           ),
         ),
