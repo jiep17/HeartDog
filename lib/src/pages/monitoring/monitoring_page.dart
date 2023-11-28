@@ -1,6 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:heartdog/src/models/generic_pulse.dart';
+import 'package:heartdog/src/models/generic_temperature.dart';
 import 'package:heartdog/src/pages/monitoring/heart_rate.dart';
+import 'package:heartdog/src/services/pulse_services.dart';
+import 'package:heartdog/src/services/temperature_services.dart';
+import 'package:heartdog/src/shared/shared_preferences.dart';
 import 'package:heartdog/src/util/app_colors.dart';
+import 'package:intl/intl.dart';
 
 class MonitoringPage extends StatefulWidget {
   const MonitoringPage({Key? key}) : super(key: key);
@@ -10,7 +18,53 @@ class MonitoringPage extends StatefulWidget {
 }
 
 class _MonitoringPageState extends State<MonitoringPage> {
-  final double temperatura = 37.5;
+  final pulseService = PulseService();
+  final tempService = TemperatureService();
+  Timer? timer;
+  final UserPreferences _preferences = UserPreferences();
+  GenericPulse? pulse;
+  GenericTemperature? temperature;
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      getLastValuesPulseAndTemperature();
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    timer?.cancel();
+  }
+
+  void getLastValuesPulseAndTemperature() async {
+    if (_preferences.dogId != null) {
+      var temporal1 = await tempService.getLastRecordTemp(_preferences.dogId);
+      var temporal2 = await pulseService.getLastRecordPulse(_preferences.dogId);
+
+      if (mounted) {
+        setState(() {
+          temperature = temporal1;
+          pulse = temporal2;
+        });
+      }
+    }
+  }
+
+  String epochToFormattedString(int epochMillis) {
+    const timeZoneOffset =
+        Duration(hours: -5); // Zona horaria de Lima, Perú (UTC-5)
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(epochMillis)
+        .toUtc()
+        .add(timeZoneOffset);
+
+    final formattedDate =
+        DateFormat('dd/MM/yyyy HH:mm', 'es_PE').format(dateTime);
+
+    return formattedDate;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,23 +111,41 @@ class _MonitoringPageState extends State<MonitoringPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(
-                    '37.5 °C',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
+                  (temperature != null)
+                      ? Text(
+                          '${temperature!.data.temp} °C',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        )
+                      : const Text(
+                          '- °C',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
                   const SizedBox(height: 10),
-                  Text(
-                    'Último registro',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
+                  (temperature != null)
+                      ? Text(
+                          'Último registro: ${epochToFormattedString(temperature!.data.createdTime)}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        )
+                      : const Text(
+                          'Último registro: -',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        )
                 ],
               ),
             ),
@@ -88,10 +160,8 @@ class _MonitoringPageState extends State<MonitoringPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const HeartRatePage(
-                            title: 'Frecuencia cardíaca',
-                            frequencyData: [70, 72, 74, 73, 75, 76],
-                          ),
+                          builder: (context) =>
+                              HeartRatePage(title: 'Frecuencia cardíaca'),
                         ),
                       );
                     },
@@ -114,19 +184,33 @@ class _MonitoringPageState extends State<MonitoringPage> {
                                 ),
                               ),
                               const SizedBox(height: 5),
-                              Text(
-                                '77 ppm',
-                                style: const TextStyle(fontSize: 24),
-                              ),
+                              (pulse != null)
+                                  ? Text(
+                                      '${pulse!.data.avg} ppm',
+                                      style: const TextStyle(fontSize: 24),
+                                    )
+                                  : const Text(
+                                      '- ppm',
+                                      style: TextStyle(fontSize: 24),
+                                    ),
                               const SizedBox(height: 10),
-                              Text(
-                                'Último registro',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
+                              (pulse != null)
+                                  ? Text(
+                                      'Último registro: ${epochToFormattedString(temperature!.data.createdTime)}',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Último registro: -',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    )
                             ],
                           ),
                         ),

@@ -1,19 +1,24 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:heartdog/src/models/ble_write_data.dart';
 import 'package:heartdog/src/services/pulse_services.dart';
 import 'package:heartdog/src/util/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+// ignore: must_be_immutable
 class HeartRatePage extends StatefulWidget {
   final String title;
-  final List<double> frequencyData;
 
-  const HeartRatePage({
+  final List<BluetoothDevice> connectedDeviceList = <BluetoothDevice>[];
+  BluetoothCharacteristic? connectedWriteCharacteristic;
+
+  HeartRatePage({
     Key? key,
     required this.title,
-    required this.frequencyData,
   }) : super(key: key);
 
   @override
@@ -31,6 +36,9 @@ class _HeartRatePageState extends State<HeartRatePage> {
   double max_bpm = 0;
   final List<double> beatsPerMinuteList = [];
 
+  StreamSubscription<List<BluetoothDevice>>? _connectedDevicesSubscription;
+  List<BluetoothService> _services = [];
+
   @override
   void initState() {
     super.initState();
@@ -41,14 +49,71 @@ class _HeartRatePageState extends State<HeartRatePage> {
         pulseData = fetchPulseData();
       });
     });
+
+    _connectedDevicesSubscription = FlutterBluePlus.connectedSystemDevices
+        .asStream()
+        .listen((List<BluetoothDevice> devices) {
+      for (BluetoothDevice device in devices) {
+        _addConnectedDeviceToList(device);
+      }
+    });
+
     //ecgData = fetchECGData();
+  }
+
+  _addConnectedDeviceToList(BluetoothDevice device) async {
+    bool existItem = false;
+    for (var item in widget.connectedDeviceList) {
+      if (item.remoteId == device.remoteId) {
+        existItem = true;
+      }
+    }
+
+    if (!existItem) {
+      widget.connectedDeviceList.add(device);
+      _services = await device.discoverServices();
+      getBLECharacteristics();
+    }
+  }
+
+  void getBLECharacteristics() async {
+    for (BluetoothService service in _services) {
+      for (BluetoothCharacteristic characteristic in service.characteristics) {
+        if (characteristic.properties.write) {
+          widget.connectedWriteCharacteristic = characteristic;
+        }
+      }
+    }
+
+    BleWriteData initSensor =
+        BleWriteData(subject: 'scan-max30102', status: true);
+
+    /// SEND THE MESSAGE VIA BLUETOOTH
+    if (widget.connectedWriteCharacteristic != null) {
+      await widget.connectedWriteCharacteristic!
+          .write(utf8.encode(jsonEncode(initSensor.toJson())));
+    }
   }
 
   @override
   void dispose() {
     // Detiene el Timer cuando el widget se desmonta
     timer?.cancel();
+    _connectedDevicesSubscription?.cancel();
+    disabledScanPulse();
+
     super.dispose();
+  }
+
+  void disabledScanPulse() async {
+    if (widget.connectedWriteCharacteristic != null) {
+      BleWriteData initSensor =
+          BleWriteData(subject: 'scan-max30102', status: false);
+
+      /// SEND THE MESSAGE VIA BLUETOOTH
+      await widget.connectedWriteCharacteristic!
+          .write(utf8.encode(jsonEncode(initSensor.toJson())));
+    }
   }
 
   Future<List<Map<String, dynamic>>> fetchPulseData() async {
@@ -72,17 +137,19 @@ class _HeartRatePageState extends State<HeartRatePage> {
       }
     }
 
-    setState(() {
-      if (response.lastOrNull != null) {
-        average_bpm = response.lastOrNull?["avg"];
-      }
-      if (beatsPerMinuteList.isNotEmpty) {
-        min_bpm = beatsPerMinuteList
-            .reduce((min, current) => min < current ? min : current);
-        max_bpm = beatsPerMinuteList
-            .reduce((max, current) => max > current ? max : current);
-      }
-    });
+    if (mounted) {
+      setState(() {
+        if (response.lastOrNull != null) {
+          average_bpm = response.lastOrNull?["avg"];
+        }
+        if (beatsPerMinuteList.isNotEmpty) {
+          min_bpm = beatsPerMinuteList
+              .reduce((min, current) => min < current ? min : current);
+          max_bpm = beatsPerMinuteList
+              .reduce((max, current) => max > current ? max : current);
+        }
+      });
+    }
 
     return response;
   }
@@ -219,7 +286,7 @@ class _HeartRatePageState extends State<HeartRatePage> {
                       ),*/
                       SizedBox(height: 8.0),
                       Text(
-                        'Mínimo: 100 ppm',
+                        'Mínimo: 60 ppm',
                         style: TextStyle(
                           fontSize: 16,
                           color: AppColors.textColor,
